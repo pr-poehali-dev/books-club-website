@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { id: "articles", label: "Статьи" },
   { id: "discussions", label: "Обсуждения" },
   { id: "reviews", label: "Рецензии" },
+  { id: "randomizer", label: "Подобрать книгу" },
   { id: "library", label: "Библиотека" },
   { id: "community", label: "Сообщество" },
 ];
