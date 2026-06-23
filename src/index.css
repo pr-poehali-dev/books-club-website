@@ -113,6 +113,62 @@
   }
 }
 
+/* Slot machine reel animation */
+@keyframes reel-spin {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes reel-blur-in {
+  0% {
+    filter: blur(4px);
+    opacity: 0.3;
+  }
+  80% {
+    filter: blur(1px);
+    opacity: 0.8;
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slot-winner-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0px hsl(var(--gold) / 0);
+  }
+  50% {
+    box-shadow:
+      0 0 32px hsl(var(--gold) / 0.5),
+      0 0 64px hsl(var(--gold) / 0.2);
+  }
+}
+
+@keyframes lever-pull {
+  0% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(30deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-lever {
+  animation: lever-pull 0.5s ease-in-out;
+}
+.animate-winner-glow {
+  animation: slot-winner-glow 1.2s ease-in-out;
+}
+
 /* Grain texture overlay */
 body::after {
   content: "";
