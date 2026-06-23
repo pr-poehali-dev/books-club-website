@@ -113,60 +113,93 @@
   }
 }
 
-/* Slot machine reel animation */
-@keyframes reel-spin {
-  0% {
-    transform: translateY(0);
+/* Roulette wheel spin */
+@keyframes wheel-spin-fast {
+  from {
+    transform: rotate(0deg);
   }
-  100% {
-    transform: translateY(-100%);
-  }
-}
-
-@keyframes reel-blur-in {
-  0% {
-    filter: blur(4px);
-    opacity: 0.3;
-  }
-  80% {
-    filter: blur(1px);
-    opacity: 0.8;
-  }
-  100% {
-    filter: blur(0);
-    opacity: 1;
+  to {
+    transform: rotate(1800deg);
   }
 }
-
-@keyframes slot-winner-glow {
+@keyframes wheel-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ball-orbit {
+  from {
+    transform: rotate(0deg) translateX(140px) rotate(0deg);
+  }
+  to {
+    transform: rotate(-1080deg) translateX(140px) rotate(1080deg);
+  }
+}
+@keyframes ball-settle {
+  0% {
+    transform: rotate(0deg) translateX(140px);
+  }
+  60% {
+    transform: rotate(-400deg) translateX(140px);
+  }
+  75% {
+    transform: rotate(-400deg) translateX(100px);
+  }
+  85% {
+    transform: rotate(-420deg) translateX(100px);
+  }
+  93% {
+    transform: rotate(-410deg) translateX(95px);
+  }
+  100% {
+    transform: rotate(var(--ball-final-angle, -410deg)) translateX(92px);
+  }
+}
+@keyframes winner-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0px hsl(var(--gold) / 0);
-  }
-  50% {
     box-shadow:
-      0 0 32px hsl(var(--gold) / 0.5),
-      0 0 64px hsl(var(--gold) / 0.2);
-  }
-}
-
-@keyframes lever-pull {
-  0% {
-    transform: rotate(0deg);
+      0 0 0 0 hsl(var(--gold) / 0),
+      inset 0 0 0 0 hsl(var(--gold) / 0);
   }
   40% {
-    transform: rotate(30deg);
+    box-shadow:
+      0 0 60px 20px hsl(var(--gold) / 0.35),
+      inset 0 0 40px 10px hsl(var(--gold) / 0.15);
+  }
+}
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
   }
   100% {
-    transform: rotate(0deg);
+    transform: translateY(60px) rotate(720deg);
+    opacity: 0;
+  }
+}
+@keyframes result-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-.animate-lever {
-  animation: lever-pull 0.5s ease-in-out;
+.animate-winner-pulse {
+  animation: winner-pulse 1.4s ease-in-out;
+}
+.animate-result-rise {
+  animation: result-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .animate-winner-glow {
-  animation: slot-winner-glow 1.2s ease-in-out;
+  animation: winner-pulse 1.2s ease-in-out;
 }
 
 /* Grain texture overlay */

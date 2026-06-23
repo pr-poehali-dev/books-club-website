@@ -1,393 +1,495 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import SectionTitle from "@/components/SectionTitle";
 import { BOOKS, type Mood, type Era, type Volume, type Book } from "@/data/books";
 
-/* ─── Constants ─────────────────────────────────────────────── */
+/* ─── Constants ──────────────────────────────────────────────── */
 
-const MOODS: { id: Mood | "any"; label: string; emoji: string }[] = [
-  { id: "any",       label: "Любое",          emoji: "🎲" },
-  { id: "cry",       label: "Поплакать",       emoji: "😭" },
-  { id: "think",     label: "Подумать",        emoji: "🧠" },
-  { id: "adventure", label: "Приключения",     emoji: "⚡" },
-  { id: "light",     label: "Лёгкое",          emoji: "☀️" },
+const MOOD_OPTIONS: { id: Mood | null; label: string; emoji: string }[] = [
+  { id: "cry",       label: "Поплакать",   emoji: "😭" },
+  { id: "think",     label: "Подумать",    emoji: "🧠" },
+  { id: "adventure", label: "Приключения", emoji: "⚡" },
+  { id: "light",     label: "Лёгкое",      emoji: "☀️" },
 ];
-
-const ERAS: { id: Era | "any"; label: string; emoji: string }[] = [
-  { id: "any",     label: "Любая",       emoji: "⏳" },
-  { id: "xix",    label: "XIX век",     emoji: "🪶" },
-  { id: "xx",     label: "XX век",      emoji: "📻" },
-  { id: "modern", label: "Современность", emoji: "💻" },
+const ERA_OPTIONS: { id: Era | null; label: string; emoji: string }[] = [
+  { id: "xix",    label: "XIX век",        emoji: "🪶" },
+  { id: "xx",     label: "XX век",         emoji: "📻" },
+  { id: "modern", label: "Современность",  emoji: "💻" },
 ];
-
-const VOLUMES: { id: Volume | "any"; label: string; emoji: string }[] = [
-  { id: "any",   label: "Любой",         emoji: "📚" },
+const VOLUME_OPTIONS: { id: Volume | null; label: string; emoji: string }[] = [
   { id: "story", label: "Рассказ",       emoji: "📄" },
   { id: "short", label: "Короткий",      emoji: "📕" },
   { id: "long",  label: "Большой роман", emoji: "📖" },
 ];
 
-const ERA_LABELS: Record<Era, string> = { xix: "XIX век", xx: "XX век", modern: "Современность" };
-const VOLUME_LABELS: Record<Volume, string> = { story: "Рассказ", short: "Короткий роман", long: "Большой роман" };
-const MOOD_LABELS: Record<Mood, string> = { cry: "Поплакать", think: "Подумать", adventure: "Приключения", light: "Лёгкое" };
+const ERA_LABEL:    Record<Era,    string> = { xix: "XIX век", xx: "XX век", modern: "Современность" };
+const VOLUME_LABEL: Record<Volume, string> = { story: "Рассказ", short: "Короткий роман", long: "Большой роман" };
+const MOOD_LABEL:   Record<Mood,   string> = { cry: "Поплакать", think: "Подумать", adventure: "Приключения", light: "Лёгкое" };
 
-const REEL_ITEM_H = 64; // px, height of one reel cell
-const SPIN_ROWS   = 18; // how many fake rows scroll before stopping
+const SIZE  = 480;
+const CX    = SIZE / 2;
+const CY    = SIZE / 2;
+const R_OUT = SIZE / 2 - 4;
+const R_SEG = R_OUT - 30;
+const R_IN  = 88;
+const BALL_R = 9;
 
-/* ─── Helpers ───────────────────────────────────────────────── */
+const SEG_COLORS = [
+  "#1a472a","#0d0d0d","#5c0a0a","#0d0d0d",
+  "#1a472a","#0d0d0d","#5c0a0a","#0d0d0d",
+  "#1a472a","#0d0d0d","#5c0a0a","#0d0d0d",
+  "#1a472a","#0d0d0d","#5c0a0a","#0d0d0d",
+];
 
-function pickBook(mood: Mood | null, era: Era | null, volume: Volume | null): { book: Book; isFallback: boolean } {
-  const filtered = BOOKS.filter((b) => {
-    const moodOk   = mood   ? b.moods.includes(mood) : true;
-    const eraOk    = era    ? b.era    === era        : true;
-    const volumeOk = volume ? b.volume === volume     : true;
-    return moodOk && eraOk && volumeOk;
-  });
-  if (!filtered.length) return { book: BOOKS[Math.floor(Math.random() * BOOKS.length)], isFallback: true };
-  return { book: filtered[Math.floor(Math.random() * filtered.length)], isFallback: false };
+/* ─── Helpers ────────────────────────────────────────────────── */
+
+function pickFiltered(mood: Mood|null, era: Era|null, volume: Volume|null): Book[] {
+  const f = BOOKS.filter(b =>
+    (mood   ? b.moods.includes(mood) : true) &&
+    (era    ? b.era    === era        : true) &&
+    (volume ? b.volume === volume     : true)
+  );
+  return f.length >= 4 ? f : BOOKS;
 }
 
-/* ─── Reel component ────────────────────────────────────────── */
+/* ─── Canvas wheel drawing ───────────────────────────────────── */
 
-interface ReelItem { id: string; label: string; emoji: string }
-interface ReelProps {
-  items: ReelItem[];
+function drawWheel(ctx: CanvasRenderingContext2D, angle: number, segments: string[], ballAngle: number, ballR: number) {
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  const n = segments.length;
+  const step = (Math.PI * 2) / n;
+
+  /* Outer metallic rim */
+  const rimG = ctx.createRadialGradient(CX, CY, R_SEG + 2, CX, CY, R_OUT + 2);
+  rimG.addColorStop(0,   "#b8860b");
+  rimG.addColorStop(0.3, "#ffd700");
+  rimG.addColorStop(0.65,"#daa520");
+  rimG.addColorStop(1,   "#7a5c00");
+  ctx.beginPath(); ctx.arc(CX, CY, R_OUT, 0, Math.PI * 2);
+  ctx.fillStyle = rimG; ctx.fill();
+
+  /* Rim inner shadow */
+  const rimShadow = ctx.createRadialGradient(CX, CY, R_SEG, CX, CY, R_SEG + 10);
+  rimShadow.addColorStop(0, "rgba(0,0,0,0.5)");
+  rimShadow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.beginPath(); ctx.arc(CX, CY, R_SEG + 10, 0, Math.PI * 2);
+  ctx.fillStyle = rimShadow; ctx.fill();
+
+  /* Segments */
+  for (let i = 0; i < n; i++) {
+    const a0  = angle + i * step;
+    const a1  = a0 + step;
+    const mid = a0 + step / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, R_SEG, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = SEG_COLORS[i % SEG_COLORS.length];
+    ctx.fill();
+
+    /* 3D sheen */
+    const grd = ctx.createRadialGradient(
+      CX + Math.cos(mid) * R_SEG * 0.45,
+      CY + Math.sin(mid) * R_SEG * 0.45,
+      0,
+      CX, CY, R_SEG
+    );
+    grd.addColorStop(0, "rgba(255,255,255,0.09)");
+    grd.addColorStop(1, "rgba(0,0,0,0.22)");
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, R_SEG, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = grd; ctx.fill();
+
+    /* Gold divider */
+    ctx.beginPath();
+    ctx.moveTo(CX + Math.cos(a0) * (R_IN + 2), CY + Math.sin(a0) * (R_IN + 2));
+    ctx.lineTo(CX + Math.cos(a0) * R_SEG,      CY + Math.sin(a0) * R_SEG);
+    ctx.strokeStyle = "#c8a000"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    /* Label */
+    const lr = (R_SEG + R_IN) / 2 + 6;
+    const lx = CX + Math.cos(mid) * lr;
+    const ly = CY + Math.sin(mid) * lr;
+    ctx.save();
+    ctx.translate(lx, ly);
+    ctx.rotate(mid + Math.PI / 2);
+
+    const parts = segments[i].split("|");
+    const emoji = parts[0] || "";
+    const text  = parts[1] || "";
+
+    const emojiSize = Math.max(10, Math.min(15, (R_SEG - R_IN) * 0.27));
+    const textSize  = Math.max(7,  Math.min(9,  (R_SEG - R_IN) * 0.17));
+
+    ctx.font = `${emojiSize}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(emoji, 0, 1);
+
+    ctx.font = `bold ${textSize}px sans-serif`;
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    const words = text.split(" ");
+    if (text.length <= 10 || words.length <= 1) {
+      ctx.fillText(text, 0, 3);
+    } else {
+      const half = Math.ceil(words.length / 2);
+      ctx.fillText(words.slice(0, half).join(" "), 0, 3);
+      ctx.fillText(words.slice(half).join(" "),    0, 3 + textSize + 1);
+    }
+    ctx.restore();
+  }
+
+  /* Inner hub rings */
+  for (const [r, stop0, stop1, stop2] of [
+    [R_IN,       "#3a2a00","#1a1000","#0a0800"],
+    [R_IN * 0.7, "#2a1e00","#140e00","#060400"],
+    [R_IN * 0.45,"#1e1600","#0e0900","#040200"],
+  ] as [number, string, string, string][]) {
+    const g = ctx.createRadialGradient(CX - r * 0.2, CY - r * 0.2, r * 0.05, CX, CY, r);
+    g.addColorStop(0, stop0); g.addColorStop(0.5, stop1); g.addColorStop(1, stop2);
+    ctx.beginPath(); ctx.arc(CX, CY, r, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = "#c8a000"; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+
+  /* Center jewel */
+  const jg = ctx.createRadialGradient(CX - 6, CY - 6, 2, CX, CY, 22);
+  jg.addColorStop(0, "#ffe066"); jg.addColorStop(0.5, "#daa520"); jg.addColorStop(1, "#5a3e00");
+  ctx.beginPath(); ctx.arc(CX, CY, 22, 0, Math.PI * 2);
+  ctx.fillStyle = jg; ctx.fill();
+  ctx.strokeStyle = "#ffe066"; ctx.lineWidth = 2; ctx.stroke();
+
+  /* Ball */
+  const bx = CX + Math.cos(ballAngle) * ballR;
+  const by = CY + Math.sin(ballAngle) * ballR;
+  const bg = ctx.createRadialGradient(bx - 3, by - 3, 1, bx, by, BALL_R);
+  bg.addColorStop(0, "#ffffff"); bg.addColorStop(0.4, "#ddd"); bg.addColorStop(1, "#888");
+  ctx.beginPath(); ctx.arc(bx, by, BALL_R, 0, Math.PI * 2);
+  ctx.fillStyle = bg; ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 1; ctx.stroke();
+
+  /* Pointer */
+  ctx.save();
+  ctx.translate(CX, 10);
+  ctx.beginPath();
+  ctx.moveTo(-11, 0); ctx.lineTo(11, 0); ctx.lineTo(0, 24);
+  ctx.closePath();
+  const pg = ctx.createLinearGradient(-11, 0, 11, 0);
+  pg.addColorStop(0, "#daa520"); pg.addColorStop(0.5, "#ffe066"); pg.addColorStop(1, "#b8860b");
+  ctx.fillStyle = pg; ctx.fill();
+  ctx.strokeStyle = "#7a5c00"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.restore();
+}
+
+/* ─── Wheel component ────────────────────────────────────────── */
+
+interface WheelProps {
+  segments: string[];
   spinning: boolean;
-  targetIndex: number;
-  delay: number;
-  label: string;
+  targetIdx: number;
   onDone: () => void;
 }
 
-function Reel({ items, spinning, targetIndex, delay, label, onDone }: ReelProps) {
-  const stripRef = useRef<HTMLDivElement>(null);
-  const doneRef  = useRef(false);
+function RouletteWheel({ segments, spinning, targetIdx, onDone }: WheelProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef<number>(0);
+  const angleRef  = useRef(0);
+  const ballRef   = useRef({ angle: -Math.PI / 4, r: R_SEG - 14 });
+  const doneRef   = useRef(false);
 
-  // Build a long looped tape: SPIN_ROWS fakes + target at the end
-  const tape = [
-    ...Array.from({ length: SPIN_ROWS }, (_, i) => items[i % items.length]),
-    items[targetIndex],
-  ];
+  const n = segments.length;
+
+  const render = useCallback(() => {
+    const cvs = canvasRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext("2d");
+    if (!ctx) return;
+    drawWheel(ctx, angleRef.current, segments, ballRef.current.angle, ballRef.current.r);
+  }, [segments]);
+
+  useEffect(() => { render(); }, [render]);
 
   useEffect(() => {
     if (!spinning) { doneRef.current = false; return; }
     doneRef.current = false;
+    cancelAnimationFrame(rafRef.current);
 
-    const el = stripRef.current;
-    if (!el) return;
+    const segStep  = (Math.PI * 2) / n;
+    // Target: pointer at top (−π/2) aligns with centre of segment targetIdx
+    // wheel angle when segment i centre is at pointer: −π/2 − (i·step + step/2)
+    const baseTarget = -Math.PI / 2 - (targetIdx * segStep + segStep / 2);
+    const extraTurns = Math.PI * 2 * (12 + Math.floor(Math.random() * 5));
+    const totalDelta = baseTarget - angleRef.current - extraTurns;
+    // force backward (more negative) so wheel spins clockwise
+    const startAngle = angleRef.current;
+    const endAngle   = startAngle + totalDelta;
 
-    // Reset to top instantly
-    el.style.transition = "none";
-    el.style.transform  = "translateY(0)";
+    const startBallAngle = ballRef.current.angle;
+    const FRAMES = 240; // ~4 s at 60 fps
+    let f = 0;
 
-    const totalPx = SPIN_ROWS * REEL_ITEM_H;
-    const duration = 1.4 + delay * 0.4; // seconds
+    const tick = () => {
+      f++;
+      const t = Math.min(f / FRAMES, 1);
+      // easeInOutQuint
+      const eased = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.transition = `transform ${duration}s cubic-bezier(0.17, 0.67, 0.25, 1.0)`;
-        el.style.transform  = `translateY(-${totalPx}px)`;
-      });
-    });
+      angleRef.current = startAngle + totalDelta * eased;
 
-    const timer = setTimeout(() => {
-      if (!doneRef.current) { doneRef.current = true; onDone(); }
-    }, (duration + delay) * 1000);
+      // Ball: counter-rotate fast then settle
+      const ballSpeed = t < 0.55
+        ? 0.21 * (1 - t * 0.25)
+        : 0.21 * (1 - 0.55 * 0.25) * Math.pow(1 - (t - 0.55) / 0.45, 1.6);
+      ballRef.current.angle = startBallAngle - (startBallAngle - ballRef.current.angle) + (startBallAngle - (startBallAngle + ballSpeed * FRAMES * t * 0.8));
+      // simpler: just decrement each frame
+      ballRef.current.angle -= ballSpeed;
 
-    return () => clearTimeout(timer);
-  }, [spinning]);
+      // Ball falls inward after 55%
+      if (t > 0.55) {
+        const prog = (t - 0.55) / 0.45;
+        ballRef.current.r = (R_SEG - 14) - prog * ((R_SEG - 14) - 92);
+      }
+
+      render();
+
+      if (f >= FRAMES) {
+        angleRef.current = endAngle;
+        ballRef.current.r = 92;
+        render();
+        if (!doneRef.current) { doneRef.current = true; onDone(); }
+        return;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [spinning, targetIdx, n, render, onDone]);
 
   return (
-    <div className="flex flex-col items-center gap-3 flex-1 min-w-0">
-      <p className="text-gold-dim text-xs tracking-[0.25em] uppercase font-body">{label}</p>
-
-      {/* Window */}
-      <div className="relative w-full overflow-hidden border border-gold-dim bg-background"
-           style={{ height: REEL_ITEM_H }}>
-        {/* Top/bottom fades */}
-        <div className="absolute inset-x-0 top-0 h-6 z-10 pointer-events-none"
-             style={{ background: "linear-gradient(to bottom, hsl(var(--background)), transparent)" }} />
-        <div className="absolute inset-x-0 bottom-0 h-6 z-10 pointer-events-none"
-             style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
-        {/* Gold selection line */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gold z-20" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gold z-20" />
-
-        {/* Strip */}
-        <div ref={stripRef} className="will-change-transform">
-          {tape.map((item, i) => (
-            <div key={i}
-                 className="flex items-center justify-center gap-2 font-body text-sm text-parchment"
-                 style={{ height: REEL_ITEM_H }}>
-              <span className="text-xl">{item.emoji}</span>
-              <span className="truncate max-w-[80px] sm:max-w-[100px]">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="relative flex items-center justify-center select-none">
+      {/* Dark decorative surround */}
+      <div className="absolute rounded-full pointer-events-none"
+        style={{
+          width: SIZE + 40, height: SIZE + 40,
+          top: -20, left: -20,
+          background: "radial-gradient(circle at 35% 30%, #2a1a00, #120d00 55%, #060400)",
+          boxShadow: "0 0 0 5px #c8a000, 0 0 0 8px #7a5c00, 0 0 60px rgba(200,160,0,0.25), inset 0 0 40px rgba(0,0,0,0.9)",
+          zIndex: 0,
+        }} />
+      {/* Bolt dots on rim */}
+      {Array.from({ length: 16 }).map((_, i) => {
+        const a = (Math.PI * 2 * i) / 16 - Math.PI / 2;
+        const r = SIZE / 2 + 14;
+        return (
+          <div key={i} className="absolute w-2 h-2 rounded-full z-20 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 40% 35%, #ffe066, #7a5c00)",
+              boxShadow: "0 0 4px rgba(200,160,0,0.6)",
+              left: CX + Math.cos(a) * r - 4,
+              top:  CY + Math.sin(a) * r - 4,
+            }} />
+        );
+      })}
+      <canvas
+        ref={canvasRef}
+        width={SIZE}
+        height={SIZE}
+        className="relative z-10 rounded-full cursor-pointer"
+        style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,0,0.9))" }}
+        onClick={() => {}}
+      />
     </div>
   );
 }
 
-/* ─── Lever ─────────────────────────────────────────────────── */
+/* ─── Filter chip ────────────────────────────────────────────── */
 
-interface LeverProps { onClick: () => void; disabled: boolean; spinning: boolean }
-
-function Lever({ onClick, disabled, spinning }: LeverProps) {
-  const [pulled, setPulled] = useState(false);
-
-  const handleClick = () => {
-    if (disabled) return;
-    setPulled(true);
-    setTimeout(() => setPulled(false), 500);
-    onClick();
-  };
-
+function Chip({ label, emoji, selected, onClick }: { label:string; emoji:string; selected:boolean; onClick:()=>void }) {
   return (
-    <button
-      onClick={handleClick}
-      disabled={disabled}
-      className="flex flex-col items-center gap-1 group disabled:opacity-40 transition-opacity select-none"
-      title="Крутить!"
-    >
-      {/* Ball */}
-      <div className={`w-9 h-9 rounded-full border-2 border-gold bg-gold/20 flex items-center justify-center
-        shadow-lg shadow-gold/20 group-hover:bg-gold/40 transition-colors
-        ${pulled ? "scale-90" : "scale-100"} transition-transform duration-150`}>
-        <span className="text-gold text-lg">●</span>
-      </div>
-      {/* Arm */}
-      <div
-        className={`w-1.5 rounded-full bg-gradient-to-b from-gold to-gold-dim transition-all duration-500 origin-top
-          ${pulled ? "h-8 rotate-12" : "h-14"}`}
-        style={{ transformOrigin: "top center" }}
-      />
-      {/* Base */}
-      <div className="w-6 h-2 rounded-sm bg-gold-dim" />
-      <span className="text-gold-dim text-xs font-body tracking-widest mt-1 uppercase">
-        {spinning ? "..." : "Крутить"}
-      </span>
+    <button onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-1.5 border text-xs font-body tracking-wide transition-all duration-150
+        ${selected
+          ? "border-gold bg-gold/15 text-gold shadow-sm shadow-gold/20"
+          : "border-border text-muted-foreground hover:border-gold-dim hover:text-parchment"}`}>
+      <span>{emoji}</span>{label}
     </button>
   );
 }
 
-/* ─── Main component ────────────────────────────────────────── */
+/* ─── Main ───────────────────────────────────────────────────── */
 
 export default function BookRandomizer() {
-  const [mood,   setMood]   = useState<Mood | null>(null);
-  const [era,    setEra]    = useState<Era  | null>(null);
+  const [mood,   setMood]   = useState<Mood   | null>(null);
+  const [era,    setEra]    = useState<Era    | null>(null);
   const [volume, setVolume] = useState<Volume | null>(null);
 
   const [spinning,   setSpinning]   = useState(false);
-  const [doneCount,  setDoneCount]  = useState(0);
-  const [result,     setResult]     = useState<{ book: Book; isFallback: boolean } | null>(null);
+  const [result,     setResult]     = useState<{book:Book; isFallback:boolean} | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [leverAnim,  setLeverAnim]  = useState(false);
   const [winGlow,    setWinGlow]    = useState(false);
+  const [targetIdx,  setTargetIdx]  = useState(0);
 
-  // Indices into the reel arrays for the target item
-  const [moodIdx,   setMoodIdx]   = useState(0);
-  const [eraIdx,    setEraIdx]    = useState(0);
-  const [volumeIdx, setVolumeIdx] = useState(0);
+  const pool = pickFiltered(mood, era, volume);
+  const isFallback = pool === BOOKS && (mood || era || volume);
+  const wheelBooks = pool.slice(0, 16);
+  const segments   = wheelBooks.map(b => `${b.emoji}|${b.title}`);
 
-  const pendingResult = useRef<{ book: Book; isFallback: boolean } | null>(null);
+  function pickFiltered(m: Mood|null, e: Era|null, v: Volume|null) {
+    const f = BOOKS.filter(b =>
+      (m ? b.moods.includes(m) : true) &&
+      (e ? b.era    === e       : true) &&
+      (v ? b.volume === v       : true)
+    );
+    return f.length >= 4 ? f : BOOKS;
+  }
 
-  const spin = () => {
+  const handleSpin = () => {
     if (spinning) return;
-
-    const picked = pickBook(mood, era, volume);
-    pendingResult.current = picked;
-
-    // Find target indices in reel arrays (first item is "any", skip it)
-    const moodTarget   = mood   ? MOODS.findIndex(m => m.id === mood)     : Math.floor(Math.random() * (MOODS.length   - 1)) + 1;
-    const eraTarget    = era    ? ERAS.findIndex(e => e.id === era)        : Math.floor(Math.random() * (ERAS.length    - 1)) + 1;
-    const volumeTarget = volume ? VOLUMES.findIndex(v => v.id === volume)  : Math.floor(Math.random() * (VOLUMES.length - 1)) + 1;
-
-    setMoodIdx(moodTarget   >= 0 ? moodTarget   : 1);
-    setEraIdx(eraTarget     >= 0 ? eraTarget    : 1);
-    setVolumeIdx(volumeTarget >= 0 ? volumeTarget : 1);
-
     setShowResult(false);
     setWinGlow(false);
-    setDoneCount(0);
+    const idx = Math.floor(Math.random() * wheelBooks.length);
+    setTargetIdx(idx);
+    setResult({ book: wheelBooks[idx], isFallback: !!isFallback });
     setSpinning(true);
-    setLeverAnim(true);
-    setTimeout(() => setLeverAnim(false), 600);
   };
 
-  const handleReelDone = () => {
-    setDoneCount(prev => {
-      const next = prev + 1;
-      if (next >= 3) {
-        // All 3 reels done
-        setTimeout(() => {
-          setSpinning(false);
-          setResult(pendingResult.current);
-          setShowResult(true);
-          setWinGlow(true);
-          setTimeout(() => setWinGlow(false), 1200);
-        }, 200);
-      }
-      return next;
-    });
-  };
-
-  const moods_reel   = MOODS.map(m => ({ id: m.id, label: m.label, emoji: m.emoji }));
-  const eras_reel    = ERAS.map(e => ({ id: e.id, label: e.label, emoji: e.emoji }));
-  const volumes_reel = VOLUMES.map(v => ({ id: v.id, label: v.label, emoji: v.emoji }));
-
-  const hasFilter = mood || era || volume;
+  const handleDone = useCallback(() => {
+    setSpinning(false);
+    setShowResult(true);
+    setWinGlow(true);
+    setTimeout(() => setWinGlow(false), 1400);
+  }, []);
 
   return (
-    <section id="randomizer" className="py-24 bg-card border-y border-border">
-      <div className="px-6 max-w-4xl mx-auto">
-        <SectionTitle sub="Что почитать?">Подобрать книгу</SectionTitle>
+    <section id="randomizer" className="py-20 border-y border-border overflow-hidden"
+      style={{ background: "radial-gradient(ellipse at 50% 0%, #1a1200 0%, #0a0800 50%, hsl(var(--background)) 100%)" }}>
+      <div className="px-6 max-w-6xl mx-auto">
+        <SectionTitle sub="Что почитать?">Книжная рулетка</SectionTitle>
 
-        <p className="text-center text-muted-foreground font-body italic mb-12 text-lg">
-          Выберите фильтры — или сразу крутите барабан. Удача сама выберет.
-        </p>
-
-        {/* ── Slot machine ── */}
-        <div className={`border border-gold-dim bg-background p-6 md:p-8 mb-8 transition-all duration-700
-          ${winGlow ? "animate-winner-glow" : ""}`}>
-
-          {/* Decorative top bar */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            {["●","◆","●","◆","●"].map((s, i) => (
-              <span key={i} className={`text-xs ${i % 2 === 0 ? "text-gold" : "text-gold-dim opacity-40"}`}>{s}</span>
-            ))}
-            <span className="mx-3 font-display text-gold text-sm tracking-[0.3em] uppercase">Книжное казино</span>
-            {["●","◆","●","◆","●"].map((s, i) => (
-              <span key={i} className={`text-xs ${i % 2 === 0 ? "text-gold" : "text-gold-dim opacity-40"}`}>{s}</span>
-            ))}
-          </div>
-
-          {/* Reels + Lever */}
-          <div className="flex items-end gap-4 md:gap-6">
-            <Reel items={moods_reel}   spinning={spinning} targetIndex={moodIdx}   delay={0}   label="Настроение" onDone={handleReelDone} />
-            <Reel items={eras_reel}    spinning={spinning} targetIndex={eraIdx}    delay={0.3} label="Эпоха"      onDone={handleReelDone} />
-            <Reel items={volumes_reel} spinning={spinning} targetIndex={volumeIdx} delay={0.6} label="Объём"      onDone={handleReelDone} />
-
-            {/* Lever */}
-            <div className={`shrink-0 pb-6 transition-transform duration-150 ${leverAnim ? "translate-y-1" : ""}`}>
-              <Lever onClick={spin} disabled={spinning} spinning={spinning} />
-            </div>
-          </div>
-
-          {/* Decorative bottom bar */}
-          <div className="flex items-center justify-center gap-1 mt-6">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-colors duration-300
-                ${winGlow ? "bg-gold" : "bg-gold-dim opacity-30"}`}
-                   style={{ width: i === 4 ? 24 : 8 }} />
-            ))}
-          </div>
-        </div>
-
-        {/* ── Filter row ── */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Фильтры:</span>
-
-          {MOODS.slice(1).map(m => (
-            <button key={m.id}
-              onClick={() => setMood(mood === m.id as Mood ? null : m.id as Mood)}
-              className={`px-3 py-1.5 border text-xs font-body tracking-wide transition-all
-                ${mood === m.id ? "border-gold bg-gold/10 text-gold" : "border-border text-muted-foreground hover:border-gold-dim hover:text-parchment"}`}>
-              {m.emoji} {m.label}
-            </button>
+        {/* Filters */}
+        <div className="flex flex-wrap justify-center items-center gap-2 mb-12">
+          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Настроение:</span>
+          {MOOD_OPTIONS.map(m => (
+            <Chip key={String(m.id)} label={m.label} emoji={m.emoji}
+              selected={mood === m.id}
+              onClick={() => setMood(mood === m.id ? null : m.id)} />
           ))}
-
-          <div className="w-px h-4 bg-border mx-1" />
-
-          {ERAS.slice(1).map(e => (
-            <button key={e.id}
-              onClick={() => setEra(era === e.id as Era ? null : e.id as Era)}
-              className={`px-3 py-1.5 border text-xs font-body tracking-wide transition-all
-                ${era === e.id ? "border-gold bg-gold/10 text-gold" : "border-border text-muted-foreground hover:border-gold-dim hover:text-parchment"}`}>
-              {e.emoji} {e.label}
-            </button>
+          <div className="w-px h-5 bg-border mx-1" />
+          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Эпоха:</span>
+          {ERA_OPTIONS.map(e => (
+            <Chip key={String(e.id)} label={e.label} emoji={e.emoji}
+              selected={era === e.id}
+              onClick={() => setEra(era === e.id ? null : e.id)} />
           ))}
-
-          <div className="w-px h-4 bg-border mx-1" />
-
-          {VOLUMES.slice(1).map(v => (
-            <button key={v.id}
-              onClick={() => setVolume(volume === v.id as Volume ? null : v.id as Volume)}
-              className={`px-3 py-1.5 border text-xs font-body tracking-wide transition-all
-                ${volume === v.id ? "border-gold bg-gold/10 text-gold" : "border-border text-muted-foreground hover:border-gold-dim hover:text-parchment"}`}>
-              {v.emoji} {v.label}
-            </button>
+          <div className="w-px h-5 bg-border mx-1" />
+          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Объём:</span>
+          {VOLUME_OPTIONS.map(v => (
+            <Chip key={String(v.id)} label={v.label} emoji={v.emoji}
+              selected={volume === v.id}
+              onClick={() => setVolume(volume === v.id ? null : v.id)} />
           ))}
-
-          {hasFilter && (
+          {(mood || era || volume) && (
             <button onClick={() => { setMood(null); setEra(null); setVolume(null); }}
-              className="px-3 py-1.5 text-xs font-body text-muted-foreground hover:text-parchment flex items-center gap-1 ml-1">
+              className="text-muted-foreground text-xs font-body hover:text-parchment flex items-center gap-1 ml-2 transition-colors">
               <Icon name="X" size={12} /> Сбросить
             </button>
           )}
         </div>
 
-        {/* ── Result card ── */}
-        <div className={`transition-all duration-500 ${showResult && result ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
-          {result && (
-            <div className="border border-gold-dim bg-background p-8 md:p-10">
-              {result.isFallback && (
-                <div className="inline-flex items-center gap-2 text-gold-dim text-xs tracking-widest uppercase font-body mb-6 border border-gold-dim/30 bg-gold/5 px-4 py-2">
-                  <Icon name="Sparkles" size={13} />
-                  А вдруг понравится?
-                </div>
+        {/* Wheel + Result */}
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-14 lg:gap-20">
+
+          <div className="flex flex-col items-center gap-10">
+            <RouletteWheel
+              segments={segments}
+              spinning={spinning}
+              targetIdx={targetIdx}
+              onDone={handleDone}
+            />
+            <button onClick={handleSpin} disabled={spinning}
+              className={`px-14 py-4 font-body tracking-[0.35em] text-sm uppercase transition-all duration-200 min-w-[220px]
+                ${spinning
+                  ? "bg-transparent border border-gold-dim text-gold-dim cursor-not-allowed"
+                  : "bg-gold text-ink hover:brightness-110 active:scale-95"}`}
+              style={!spinning ? {
+                boxShadow: "0 0 24px rgba(218,165,32,0.5), 0 4px 20px rgba(0,0,0,0.6)",
+              } : {}}>
+              {spinning ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-gold-dim border-t-gold rounded-full animate-spin inline-block" />
+                  Вращается…
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-3">
+                  <Icon name="Shuffle" size={16} />
+                  {showResult ? "Крутить ещё" : "Крутить колесо"}
+                </span>
               )}
+            </button>
+          </div>
 
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                {/* Cover */}
-                <div className="shrink-0 mx-auto md:mx-0">
-                  <div className="w-32 h-44 bg-leather border border-gold-dim flex flex-col items-center justify-center text-center p-3 shadow-xl shadow-black/50">
-                    <div className="text-4xl mb-3">{result.book.emoji}</div>
-                    <div className="font-display text-parchment text-xs leading-snug">{result.book.title}</div>
+          {/* Result panel */}
+          <div className="flex-1 w-full lg:max-w-md">
+            {!showResult && (
+              <div className="flex flex-col items-center justify-center gap-5 py-20 opacity-50">
+                <div className="text-gold text-5xl animate-pulse">✦</div>
+                <p className="text-gold-dim font-display text-xl italic">Нажмите — колесо выберет</p>
+              </div>
+            )}
+
+            {showResult && result && (
+              <div className={`border border-gold-dim p-7 animate-result-rise
+                ${winGlow ? "animate-winner-glow" : ""}`}
+                style={{ background: "linear-gradient(135deg, #1a1200, #0d0900)" }}>
+
+                {result.isFallback && (
+                  <div className="inline-flex items-center gap-2 text-gold-dim text-xs tracking-widest uppercase font-body mb-5 border border-gold-dim/30 bg-gold/5 px-3 py-1.5">
+                    <Icon name="Sparkles" size={12} />А вдруг понравится?
+                  </div>
+                )}
+
+                <div className="flex gap-5 items-start mb-5">
+                  <div className="shrink-0 w-[76px] h-28 flex flex-col items-center justify-center text-center p-2 border border-gold-dim/60"
+                    style={{ background: "linear-gradient(145deg, #2a1800, #110c00)", boxShadow: "4px 4px 16px rgba(0,0,0,0.7)" }}>
+                    <div className="text-2xl mb-1.5">{result.book.emoji}</div>
+                    <div className="font-display text-parchment text-[9px] leading-snug">{result.book.title}</div>
+                    <div className="text-gold-dim text-[7px] mt-1 font-body italic truncate w-full text-center">{result.book.author}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display text-2xl md:text-3xl text-parchment leading-tight mb-1">{result.book.title}</h3>
+                    <p className="text-gold text-sm font-body italic mb-3">{result.book.author}, {result.book.year}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {result.book.moods.map(m => (
+                        <span key={m} className="border border-gold-dim/50 text-gold-dim text-[10px] px-2 py-0.5 font-body">{MOOD_LABEL[m]}</span>
+                      ))}
+                      <span className="border border-border text-muted-foreground text-[10px] px-2 py-0.5 font-body">{ERA_LABEL[result.book.era]}</span>
+                      <span className="border border-border text-muted-foreground text-[10px] px-2 py-0.5 font-body">{VOLUME_LABEL[result.book.volume]}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display text-3xl md:text-4xl text-parchment mb-1 leading-tight">
-                    {result.book.title}
-                  </h3>
-                  <p className="text-gold font-body italic mb-5">
-                    {result.book.author}, {result.book.year}
-                  </p>
-                  <p className="text-muted-foreground font-body text-lg leading-relaxed mb-7">
-                    {result.book.description}
-                  </p>
+                <p className="text-muted-foreground font-body text-sm leading-relaxed mb-6 border-l-2 border-gold-dim/30 pl-4">
+                  {result.book.description}
+                </p>
 
-                  <div className="flex flex-wrap gap-2 mb-8">
-                    {result.book.moods.map(m => (
-                      <span key={m} className="border border-gold-dim/50 text-gold-dim text-xs px-2.5 py-1 font-body">
-                        {MOOD_LABELS[m]}
-                      </span>
-                    ))}
-                    <span className="border border-border text-muted-foreground text-xs px-2.5 py-1 font-body">
-                      {ERA_LABELS[result.book.era]}
-                    </span>
-                    <span className="border border-border text-muted-foreground text-xs px-2.5 py-1 font-body">
-                      {VOLUME_LABELS[result.book.volume]}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button onClick={spin} disabled={spinning}
-                      className="px-6 py-3 bg-gold text-ink font-body tracking-wider text-sm uppercase hover:bg-gold/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                      <Icon name="RefreshCw" size={14} />
-                      Ещё раз!
-                    </button>
-                    <button className="px-6 py-3 border border-border text-muted-foreground font-body tracking-wider text-sm uppercase hover:border-gold-dim hover:text-parchment transition-all flex items-center justify-center gap-2">
-                      <Icon name="MessageSquare" size={14} />
-                      Обсудить в клубе
-                    </button>
-                  </div>
+                <div className="flex gap-3">
+                  <button onClick={handleSpin} disabled={spinning}
+                    className="flex-1 py-2.5 bg-gold text-ink font-body tracking-wider text-xs uppercase hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-40">
+                    <Icon name="RefreshCw" size={13} />Другую
+                  </button>
+                  <button className="flex-1 py-2.5 border border-border text-muted-foreground font-body tracking-wider text-xs uppercase hover:border-gold-dim hover:text-parchment transition-all flex items-center justify-center gap-2">
+                    <Icon name="MessageSquare" size={13} />В клуб
+                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </section>
