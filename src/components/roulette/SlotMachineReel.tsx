@@ -39,25 +39,28 @@ export default function Reel({ books, targetIdx, spinning, delay, onDone }: Reel
   }, [spinning]);
 
   return (
+    /* White drum window — like reference image */
     <div style={{
       position: "relative",
       height: ITEM_H * VISIBLE,
       overflow: "hidden",
-      borderRadius: 3,
-      background: "#e8e2d6",
+      borderRadius: 6,
+      /* White reel background */
+      background: "#f8f6f0",
       boxShadow: [
-        "inset 0 4px 16px rgba(0,0,0,0.95)",
-        "inset 0 -3px 10px rgba(0,0,0,0.8)",
-        "inset 3px 0 10px rgba(0,0,0,0.7)",
-        "inset -3px 0 10px rgba(0,0,0,0.7)",
+        "inset 0 5px 18px rgba(0,0,0,0.7)",
+        "inset 0 -4px 14px rgba(0,0,0,0.6)",
+        "inset 3px 0 12px rgba(0,0,0,0.4)",
+        "inset -3px 0 12px rgba(0,0,0,0.4)",
+        "0 0 0 2px rgba(180,130,0,0.6)",
       ].join(","),
     }}>
-      {/* Reel drum strip */}
+      {/* Drum strip */}
       <div
         ref={stripRef}
         style={{
           willChange: "transform",
-          animation: spinning ? `reel-blur ${0.3}s ease infinite` : "none",
+          animation: spinning ? "reel-blur 0.25s ease infinite" : "none",
         }}>
         {tape.map((book, i) => (
           <div key={i} style={{
@@ -66,47 +69,53 @@ export default function Reel({ books, targetIdx, spinning, delay, onDone }: Reel
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "4px 8px",
+            padding: "6px 10px",
             textAlign: "center",
+            /* Alternating cream / white stripes like real drum */
             background: i % 2 === 0
-              ? "linear-gradient(180deg,#fefefc 0%,#f8f4ec 100%)"
-              : "linear-gradient(180deg,#f4efE5 0%,#ede8db 100%)",
-            borderBottom: "1px solid rgba(0,0,0,0.1)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
+              ? "linear-gradient(180deg,#ffffff 0%,#f5f2ea 100%)"
+              : "linear-gradient(180deg,#eee8d8 0%,#e4dcca 100%)",
+            borderBottom: "1px solid rgba(180,140,60,0.3)",
+            position: "relative",
           }}>
-            {/* Thin ruled lines */}
+            {/* Horizontal ruled lines */}
             <div style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: "repeating-linear-gradient(180deg,transparent,transparent 14px,rgba(0,0,0,0.04) 14px,rgba(0,0,0,0.04) 15px)",
+              position: "absolute", inset: 0,
+              backgroundImage: "repeating-linear-gradient(180deg,transparent,transparent 15px,rgba(0,0,0,0.04) 15px,rgba(0,0,0,0.04) 16px)",
               pointerEvents: "none",
             }} />
+            {/* Book title — bold dark red like "7" on casino machine */}
             <p style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: 11.5,
-              fontWeight: 700,
-              color: "#180c00",
-              lineHeight: 1.25,
+              fontSize: 13,
+              fontWeight: 900,
+              color: "#8b0000",
+              lineHeight: 1.2,
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              marginBottom: 2,
+              marginBottom: 3,
               position: "relative",
-            }}>
+              /* Text stroke for realism */
+              WebkitTextStroke: "0.3px rgba(60,0,0,0.4)",
+              textShadow: "0 1px 2px rgba(0,0,0,0.15)",
+            } as React.CSSProperties}>
               {book.title}
             </p>
             <p style={{
               fontFamily: "Inter, sans-serif",
-              fontSize: 9.5,
-              color: "#7a5a30",
+              fontSize: 9,
+              fontWeight: 600,
+              color: "#6a4010",
+              letterSpacing: "0.03em",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
               width: "100%",
               textAlign: "center",
               position: "relative",
-              letterSpacing: "0.02em",
+              textTransform: "uppercase",
             }}>
               {book.author}
             </p>
@@ -114,39 +123,35 @@ export default function Reel({ books, targetIdx, spinning, delay, onDone }: Reel
         ))}
       </div>
 
-      {/* Top depth shadow */}
+      {/* Top curved shadow — barrel depth */}
       <div style={{
-        position: "absolute", inset: "0 0 auto 0", height: 36, zIndex: 10,
-        pointerEvents: "none",
-        background: "linear-gradient(to bottom, rgba(10,6,2,0.92) 0%, rgba(10,6,2,0.5) 60%, transparent 100%)",
+        position: "absolute", inset: "0 0 auto 0", height: 40, zIndex: 10, pointerEvents: "none",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 55%, transparent 100%)",
       }} />
-      {/* Bottom depth shadow */}
+      {/* Bottom curved shadow */}
       <div style={{
-        position: "absolute", inset: "auto 0 0 0", height: 36, zIndex: 10,
-        pointerEvents: "none",
-        background: "linear-gradient(to top, rgba(10,6,2,0.92) 0%, rgba(10,6,2,0.5) 60%, transparent 100%)",
+        position: "absolute", inset: "auto 0 0 0", height: 40, zIndex: 10, pointerEvents: "none",
+        background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 55%, transparent 100%)",
       }} />
-      {/* Drum-curve sheen — left */}
+      {/* Left edge barrel curve */}
       <div style={{
-        position: "absolute", inset: "0 auto 0 0", width: 8, zIndex: 9,
-        pointerEvents: "none",
-        background: "linear-gradient(to right, rgba(0,0,0,0.35), transparent)",
+        position: "absolute", inset: "0 auto 0 0", width: 10, zIndex: 9, pointerEvents: "none",
+        background: "linear-gradient(to right, rgba(0,0,0,0.4), transparent)",
       }} />
-      {/* Drum-curve sheen — right */}
+      {/* Right edge barrel curve */}
       <div style={{
-        position: "absolute", inset: "0 0 0 auto", width: 8, zIndex: 9,
-        pointerEvents: "none",
-        background: "linear-gradient(to left, rgba(0,0,0,0.35), transparent)",
+        position: "absolute", inset: "0 0 0 auto", width: 10, zIndex: 9, pointerEvents: "none",
+        background: "linear-gradient(to left, rgba(0,0,0,0.4), transparent)",
       }} />
-      {/* Center payline highlight */}
+      {/* Center payline — gold lines like reference */}
       <div style={{
         position: "absolute", zIndex: 20, pointerEvents: "none",
         top: ITEM_H * ((VISIBLE - 1) / 2),
         left: 0, right: 0,
         height: ITEM_H,
-        borderTop: "1.5px solid rgba(255,210,60,0.85)",
-        borderBottom: "1.5px solid rgba(255,210,60,0.85)",
-        boxShadow: "0 0 0 1px rgba(255,210,60,0.15), 0 0 10px rgba(255,210,60,0.15)",
+        borderTop: "2px solid rgba(218,165,32,0.9)",
+        borderBottom: "2px solid rgba(218,165,32,0.9)",
+        boxShadow: "0 0 12px rgba(218,165,32,0.4), inset 0 0 8px rgba(218,165,32,0.08)",
       }} />
     </div>
   );

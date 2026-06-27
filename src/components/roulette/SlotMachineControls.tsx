@@ -1,122 +1,132 @@
 import { useState } from "react";
+import { GOLD_H, GOLD_V } from "@/components/roulette/SlotMachineAtoms";
 
-/* ── Lever ── */
+/* ══════════════════════════════════════════
+   LEVER — gold arm with red ball, right side
+   like reference image
+══════════════════════════════════════════ */
 
-interface LeverProps {
-  onClick: () => void;
-  spinning: boolean;
-}
-
-export function Lever({ onClick, spinning }: LeverProps) {
+export function Lever({ onClick, spinning }: { onClick: () => void; spinning: boolean }) {
   const [pulled, setPulled] = useState(false);
 
   const handleClick = () => {
     if (spinning) return;
     setPulled(true);
-    setTimeout(() => { setPulled(false); onClick(); }, 220);
+    setTimeout(() => { setPulled(false); onClick(); }, 280);
   };
 
   return (
     <div
       onClick={handleClick}
-      title="Дёрнуть рычаг"
+      title="Pull lever"
       style={{
         position: "absolute",
-        right: -58,
-        top: "38%",
+        right: -54,
+        top: "32%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        cursor: spinning ? "default" : "grab",
+        cursor: spinning ? "default" : "pointer",
         userSelect: "none",
-        zIndex: 40,
-        opacity: spinning ? 0.45 : 1,
-        transition: "opacity 0.3s",
+        zIndex: 50,
+        opacity: spinning ? 0.5 : 1,
+        transition: "opacity 0.25s",
+        animation: pulled ? "lever-anim 0.45s ease-out" : "none",
         transformOrigin: "bottom center",
-        animation: pulled ? "lever-return 0.4s ease-out" : "none",
         gap: 0,
       }}>
 
-      {/* Ball knob */}
+      {/* Red ball knob — like reference */}
       <div style={{
-        width: 32, height: 32,
+        width: 36, height: 36,
         borderRadius: "50%",
-        background: "radial-gradient(circle at 30% 22%, rgba(255,200,200,0.9) 0%, #e84040 25%, #c0292b 55%, #7a0a0a 85%, #3a0000 100%)",
+        background: [
+          "radial-gradient(circle at 30% 22%,",
+          "rgba(255,220,210,0.95) 0%,",
+          "#f03030 22%,",
+          "#c01818 50%,",
+          "#800000 78%,",
+          "#3a0000 100%)"
+        ].join(""),
         boxShadow: [
-          "0 4px 12px rgba(0,0,0,0.7)",
-          "0 1px 0 rgba(255,180,180,0.3) inset",
-          "0 -2px 4px rgba(0,0,0,0.5) inset",
+          "0 5px 14px rgba(0,0,0,0.75)",
+          "0 2px 4px rgba(0,0,0,0.5)",
+          "inset 0 -3px 6px rgba(0,0,0,0.4)",
         ].join(","),
-        transform: pulled ? "translateY(28px) scale(0.9)" : "translateY(0) scale(1)",
-        transition: "transform 0.18s cubic-bezier(0.4,0,0.2,1)",
+        transform: pulled ? "translateY(32px) scale(0.88)" : "scale(1)",
+        transition: "transform 0.2s cubic-bezier(0.4,0,0.2,1)",
         flexShrink: 0,
         position: "relative",
       }}>
         {/* Specular highlight */}
         <div style={{
           position: "absolute",
-          top: 5, left: 6,
-          width: 10, height: 7,
+          top: 6, left: 7,
+          width: 13, height: 9,
           borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(255,255,255,0.7), transparent)",
+          background: "radial-gradient(ellipse, rgba(255,255,255,0.75), transparent)",
           transform: "rotate(-20deg)",
+        }} />
+        {/* Secondary sheen */}
+        <div style={{
+          position: "absolute",
+          bottom: 6, right: 7,
+          width: 7, height: 5,
+          borderRadius: "50%",
+          background: "rgba(255,100,100,0.3)",
         }} />
       </div>
 
-      {/* Arm shaft */}
+      {/* Gold arm shaft */}
       <div style={{
-        width: 10,
-        height: pulled ? 52 : 88,
-        background: "linear-gradient(90deg, #d8d0c4 0%, #f0ece4 30%, #c8c0b4 60%, #a09890 80%, #888078 100%)",
-        borderRadius: 5,
+        width: 12,
+        height: pulled ? 56 : 96,
+        background: GOLD_V,
+        borderRadius: 6,
         boxShadow: [
-          "2px 0 6px rgba(0,0,0,0.5)",
-          "-1px 0 2px rgba(255,255,255,0.15)",
-          "inset 2px 0 3px rgba(255,255,255,0.2)",
+          "3px 0 8px rgba(0,0,0,0.55)",
+          "-1px 0 3px rgba(255,255,180,0.2)",
+          "inset 2px 0 4px rgba(255,240,100,0.25)",
+          "inset -2px 0 4px rgba(100,60,0,0.4)",
         ].join(","),
-        transition: "height 0.18s cubic-bezier(0.4,0,0.2,1)",
+        transition: "height 0.2s cubic-bezier(0.4,0,0.2,1)",
         flexShrink: 0,
-        marginTop: -1,
-        marginBottom: -1,
+        marginTop: -2,
+        marginBottom: -2,
       }} />
 
-      {/* Pivot base */}
+      {/* Gold pivot base — like reference */}
       <div style={{
-        width: 22, height: 14,
-        borderRadius: "0 0 6px 6px",
-        background: "linear-gradient(180deg, #c8a000 0%, #8a6800 50%, #5a4200 100%)",
-        boxShadow: "0 3px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,80,0.3)",
+        width: 28, height: 18,
+        borderRadius: "0 0 8px 8px",
+        background: GOLD_H,
+        boxShadow: [
+          "0 4px 10px rgba(0,0,0,0.65)",
+          "inset 0 2px 0 rgba(255,240,120,0.5)",
+          "inset 0 -2px 0 rgba(100,60,0,0.5)",
+        ].join(","),
         flexShrink: 0,
         position: "relative",
       }}>
-        {/* Screw on base */}
+        {/* Pivot line detail */}
         <div style={{
           position: "absolute",
-          top: "50%", left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 8, height: 8, borderRadius: "50%",
-          background: "radial-gradient(circle at 38% 30%, #e0d8cc, #a09890 40%, #706860 75%, #504840)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.7)",
-        }}>
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ position: "absolute", width: 1, height: 5, background: "rgba(0,0,0,0.5)", borderRadius: 1 }} />
-            <div style={{ position: "absolute", width: 5, height: 1, background: "rgba(0,0,0,0.5)", borderRadius: 1 }} />
-          </div>
-        </div>
+          top: "50%", left: "15%", right: "15%",
+          height: 1,
+          background: "rgba(100,60,0,0.4)",
+          transform: "translateY(-50%)",
+        }} />
       </div>
     </div>
   );
 }
 
-/* ── BigButton ── */
+/* ══════════════════════════════════════════
+   SPIN BUTTON — round gold-rimmed button
+   (used as backup; main trigger is the lever)
+══════════════════════════════════════════ */
 
-interface BigButtonProps {
-  onClick: () => void;
-  spinning: boolean;
-  done: boolean;
-}
-
-export function BigButton({ onClick, spinning, done }: BigButtonProps) {
+export function SpinButton({ onClick, spinning, done }: { onClick: () => void; spinning: boolean; done: boolean }) {
   const [pressed, setPressed] = useState(false);
 
   const handle = () => {
@@ -126,84 +136,95 @@ export function BigButton({ onClick, spinning, done }: BigButtonProps) {
     onClick();
   };
 
-  const isGold = done && !spinning;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      {/* Outer chrome ring */}
-      <div style={{
-        width: 80, height: 80,
-        borderRadius: "50%",
-        background: "radial-gradient(circle at 35% 30%, #f0ece4, #c0b8ac 40%, #9a9288 70%, #706860)",
-        boxShadow: [
-          "0 0 0 1px rgba(255,255,255,0.15)",
-          "0 6px 24px rgba(0,0,0,0.8)",
-          "0 2px 4px rgba(0,0,0,0.6)",
-          "inset 0 1px 0 rgba(255,255,255,0.3)",
-        ].join(","),
-        display: "flex", alignItems: "center", justifyContent: "center",
-        position: "relative",
+    <button
+      onClick={handle}
+      disabled={spinning}
+      style={{
+        border: "none",
+        cursor: spinning ? "not-allowed" : "pointer",
+        outline: "none",
+        padding: 0,
+        background: "transparent",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
       }}>
-        {/* Inner recess ring */}
+      {/* Outer gold ring */}
+      <div style={{
+        width: 72, height: 72,
+        borderRadius: "50%",
+        background: GOLD_RING,
+        boxShadow: [
+          "0 6px 20px rgba(0,0,0,0.7)",
+          "0 2px 4px rgba(0,0,0,0.5)",
+          "inset 0 2px 0 rgba(255,240,120,0.5)",
+          "inset 0 -2px 0 rgba(80,40,0,0.5)",
+        ].join(","),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        {/* Dark recess */}
         <div style={{
-          width: 68, height: 68,
+          width: 60, height: 60,
           borderRadius: "50%",
-          background: "linear-gradient(145deg, #2a2018, #1a1208)",
-          boxShadow: "inset 0 3px 8px rgba(0,0,0,0.9), inset 0 1px 0 rgba(0,0,0,0.5)",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "linear-gradient(145deg,#2a1a08,#180e02)",
+          boxShadow: "inset 0 3px 10px rgba(0,0,0,0.9)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}>
-          {/* The button cap */}
+          {/* Button cap */}
           <div
-            onClick={handle}
             style={{
-              width: 58, height: 58,
+              width: 50, height: 50,
               borderRadius: "50%",
-              cursor: spinning ? "not-allowed" : "pointer",
-              transform: pressed ? "scale(0.9) translateY(3px)" : "scale(1) translateY(0)",
-              transition: "transform 0.1s, box-shadow 0.1s",
-              position: "relative",
-              background: isGold
-                ? "radial-gradient(circle at 32% 24%, #ffe888 0%, #daa520 40%, #a07800 70%, #5a4200 100%)"
+              transform: pressed ? "scale(0.88) translateY(3px)" : "scale(1)",
+              transition: "transform 0.1s",
+              background: done && !spinning
+                ? "radial-gradient(circle at 32% 24%,#ffe870 0%,#daa020 38%,#a07000 68%,#5a4000 100%)"
                 : spinning
-                ? "radial-gradient(circle at 32% 24%, #ff9999 0%, #d03030 40%, #900000 70%, #4a0000 100%)"
-                : "radial-gradient(circle at 32% 24%, #ff8888 0%, #e03535 35%, #b02020 60%, #700000 85%, #3a0000 100%)",
+                ? "radial-gradient(circle at 32% 24%,#ffaaaa 0%,#d02020 40%,#880000 70%,#3a0000 100%)"
+                : "radial-gradient(circle at 32% 24%,#ff8888 0%,#e03030 34%,#a81818 60%,#680000 84%,#2a0000 100%)",
               boxShadow: pressed
-                ? "0 1px 3px rgba(0,0,0,0.9), inset 0 4px 10px rgba(0,0,0,0.5)"
-                : isGold
-                ? "0 0 0 2px #ffd700, 0 4px 16px rgba(218,165,32,0.8), 0 0 30px rgba(218,165,32,0.4)"
+                ? "inset 0 4px 10px rgba(0,0,0,0.6)"
+                : done && !spinning
+                ? "0 0 0 2px #ffd700,0 4px 14px rgba(218,165,32,0.8),0 0 28px rgba(218,165,32,0.35)"
                 : spinning
-                ? "0 2px 6px rgba(0,0,0,0.6)"
-                : "0 5px 16px rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,160,160,0.2)",
+                ? "0 2px 6px rgba(0,0,0,0.5)"
+                : "0 5px 14px rgba(0,0,0,0.65),inset 0 1px 2px rgba(255,160,160,0.2)",
+              position: "relative",
             }}>
-            {/* Specular */}
             <div style={{
-              position: "absolute",
-              top: 8, left: 10, width: 20, height: 13,
+              position: "absolute", top: 8, left: 9,
+              width: 18, height: 11,
               borderRadius: "50%",
-              background: "radial-gradient(ellipse, rgba(255,255,255,0.55), transparent)",
-              transform: "rotate(-25deg)",
-              pointerEvents: "none",
+              background: "radial-gradient(ellipse,rgba(255,255,255,0.5),transparent)",
+              transform: "rotate(-22deg)",
             }} />
-            {/* Label */}
-            <div style={{
-              position: "absolute", inset: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
+            <span style={{
+              fontFamily: "monospace",
+              fontSize: 8, fontWeight: 900,
+              letterSpacing: "0.1em",
+              color: "rgba(255,255,255,0.9)",
+              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+              position: "relative", zIndex: 2,
             }}>
-              <span style={{
-                fontFamily: "monospace",
-                fontSize: 8,
-                fontWeight: 900,
-                letterSpacing: "0.1em",
-                color: "rgba(255,255,255,0.85)",
-                textShadow: "0 1px 3px rgba(0,0,0,0.7)",
-              }}>
-                {spinning ? "SPIN" : isGold ? "AGAIN" : "SPIN"}
-              </span>
-            </div>
+              {spinning ? "..." : done ? "▶▶" : "SPIN"}
+            </span>
           </div>
         </div>
       </div>
-      <span style={{ fontFamily: "monospace", fontSize: 8, color: "#888", letterSpacing: "0.12em" }}>PUSH</span>
-    </div>
+      <span style={{
+        fontFamily: "monospace", fontSize: 8,
+        color: "#c8a000", letterSpacing: "0.14em",
+        textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+      }}>PUSH</span>
+    </button>
   );
 }
+
+/* local alias so atoms can import */
+const GOLD_RING = "linear-gradient(135deg,#ffe680 0%,#d4a010 30%,#ffd040 55%,#9a6800 80%,#ffe680 100%)";

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Book } from "@/data/randomizerConstants";
-import { STYLES, Screw, Bulb, LCD, CoinSlot } from "@/components/roulette/SlotMachineAtoms";
+import { STYLES, GOLD_H, GOLD_V, Rivet, Bulb, LedDisplay } from "@/components/roulette/SlotMachineAtoms";
 import Reel from "@/components/roulette/SlotMachineReel";
-import { Lever, BigButton } from "@/components/roulette/SlotMachineControls";
+import { Lever, SpinButton } from "@/components/roulette/SlotMachineControls";
 
 export interface SlotMachineProps {
   books: Book[];
@@ -11,6 +11,12 @@ export interface SlotMachineProps {
   onSpin: () => void;
   onDone: () => void;
 }
+
+/* ── Shared gold gradient strings ── */
+const G_H   = GOLD_H;
+const G_V   = GOLD_V;
+const G_BODY = "linear-gradient(175deg,#e8c84a 0%,#c89010 12%,#a87000 28%,#c09018 45%,#ddb830 62%,#c89010 78%,#b07800 100%)";
+const G_DARK = "linear-gradient(180deg,#c89010 0%,#8a5c00 40%,#c89010 100%)";
 
 export default function SlotMachine({ books, targets, spinning, onSpin, onDone }: SlotMachineProps) {
   const [doneCount, setDoneCount] = useState(0);
@@ -28,357 +34,393 @@ export default function SlotMachine({ books, targets, spinning, onSpin, onDone }
     });
   };
 
-  const bulbCfg = [
-    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#ffd700", g: spinning ? "0 0 10px rgba(255,210,0,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#44aaff", g: spinning ? "0 0 10px rgba(60,150,255,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#ffd700", g: spinning ? "0 0 14px rgba(255,215,0,1)" : done ? "0 0 10px rgba(255,200,0,0.9)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#44aaff", g: spinning ? "0 0 10px rgba(60,150,255,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
-  ];
-
-  const off = { c: "#332820", g: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.03)" };
+  const bulbOn = spinning || done;
+  const bulbColors = ["#ff3030", "#ffcc00", "#ff6600", "#ff3030", "#ffcc00", "#ff6600", "#ff3030", "#ffcc00", "#ff6600"];
 
   return (
     <>
       <style>{STYLES}</style>
 
-      <div style={{ position: "relative", width: "100%", maxWidth: 560, margin: "0 auto" }}>
+      {/* Outer wrapper — extra space right for lever */}
+      <div style={{ position: "relative", width: "100%", maxWidth: 520, margin: "0 auto", paddingRight: 60 }}>
 
-        {/* ══ MACHINE BODY ══ */}
+        {/* ════════════════════════════════════
+            MAIN GOLD BODY
+        ════════════════════════════════════ */}
         <div style={{
           position: "relative",
-          borderRadius: "18px 18px 14px 14px",
-          overflow: "visible",
-          background: [
-            "linear-gradient(175deg,",
-            "#d8d2c8 0%,",
-            "#c8c2b6 8%,",
-            "#b8b2a6 20%,",
-            "#a8a29a 35%,",
-            "#b2ac9e 55%,",
-            "#c4beb0 75%,",
-            "#cac4b6 100%)"
-          ].join(""),
+          /* Rich gold body like reference */
+          background: G_BODY,
+          borderRadius: 20,
           boxShadow: [
-            "0 0 0 1.5px #888078",
-            "0 0 0 3px #5a5448",
-            "0 40px 100px rgba(0,0,0,0.95)",
-            "0 10px 30px rgba(0,0,0,0.7)",
-            "inset 0 2px 0 rgba(255,255,255,0.35)",
-            "inset 0 -3px 0 rgba(0,0,0,0.4)",
+            "0 0 0 3px #7a5000",
+            "0 0 0 6px #c89010",
+            "0 0 0 8px #7a5000",
+            "0 30px 80px rgba(0,0,0,0.9)",
+            "0 8px 24px rgba(0,0,0,0.6)",
+            "inset 0 2px 0 rgba(255,240,140,0.5)",
+            "inset 0 -3px 0 rgba(80,40,0,0.6)",
           ].join(","),
         }}>
 
-          {/* ── MARQUEE TOP ── */}
-          <div style={{ borderRadius: "18px 18px 0 0", overflow: "hidden", position: "relative" }}>
+          {/* ── ARCH TOP (like reference — arch above main body) ── */}
+          <div style={{
+            position: "relative",
+            borderRadius: "20px 20px 0 0",
+            overflow: "hidden",
+            marginBottom: -2,
+          }}>
+            {/* Arch background */}
             <div style={{
-              padding: "18px 28px 14px",
-              background: [
-                "linear-gradient(180deg,",
-                "#b02020 0%,",
-                "#8a1818 25%,",
-                "#701010 60%,",
-                "#580a0a 100%)"
-              ].join(""),
-              boxShadow: [
-                "inset 0 -4px 12px rgba(0,0,0,0.5)",
-                "inset 0 2px 0 rgba(255,100,80,0.15)",
-                "inset 4px 0 8px rgba(0,0,0,0.2)",
-                "inset -4px 0 8px rgba(0,0,0,0.2)",
-              ].join(","),
+              height: 28,
+              background: G_BODY,
+              borderRadius: "20px 20px 0 0",
+              boxShadow: "inset 0 -3px 8px rgba(0,0,0,0.35)",
               position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}>
-              {/* Chrome title plate */}
+              {/* Gold star at top center — like reference */}
               <div style={{
-                margin: "0 auto 12px",
-                width: "fit-content",
-                padding: "5px 28px",
-                background: [
-                  "linear-gradient(180deg,",
-                  "#f8f2e0 0%,",
-                  "#fff8e8 30%,",
-                  "#ede0b8 65%,",
-                  "#f8eecc 100%)"
-                ].join(""),
-                borderRadius: 3,
-                border: "1px solid rgba(200,160,0,0.7)",
-                boxShadow: [
-                  "0 2px 8px rgba(0,0,0,0.6)",
-                  "0 1px 0 rgba(255,255,255,0.8)",
-                  "inset 0 1px 0 rgba(255,255,255,0.9)",
-                  "inset 0 -1px 0 rgba(0,0,0,0.1)",
-                ].join(","),
+                position: "absolute",
+                top: -18,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 20,
               }}>
-                <span style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "#2a1200",
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  textAlign: "center",
-                }}>
-                  LITERARY SLOTS
-                </span>
+                <div style={{
+                  fontSize: 26,
+                  lineHeight: 1,
+                  filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.7)) drop-shadow(0 0 12px rgba(255,200,0,0.5))",
+                  color: "#ffd700",
+                }}>★</div>
               </div>
-
-              {/* Bulb row */}
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
-                {bulbCfg.map((b, i) => (
-                  <Bulb
-                    key={i}
-                    color={(spinning || done) ? b.c : off.c}
-                    glow={(spinning || done) ? b.g : off.g}
-                    animate={spinning}
-                  />
-                ))}
-              </div>
-
-              {/* Worn paint texture overlay */}
+              {/* Gold arch rim lines */}
               <div style={{
-                position: "absolute", inset: 0, borderRadius: "inherit",
-                backgroundImage: [
-                  "radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.04) 0%, transparent 40%)",
-                  "radial-gradient(ellipse at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 40%)",
+                position: "absolute", inset: 0,
+                background: [
+                  "linear-gradient(180deg,rgba(255,240,140,0.25) 0%,transparent 40%)",
                 ].join(","),
                 pointerEvents: "none",
               }} />
             </div>
-
-            {/* Chrome trim strip under marquee */}
-            <div style={{
-              height: 8,
-              background: "linear-gradient(180deg, #e8e0d0 0%, #c0b8a8 40%, #d8d0c0 70%, #a8a098 100%)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.4)",
-            }} />
           </div>
 
-          {/* ── BODY SIDE STRUCTURE ── */}
-          <div style={{ display: "flex", alignItems: "stretch" }}>
-
-            {/* Left chrome rail */}
+          {/* ── MARQUEE PANEL — deep red with "Literary Slots" neon ── */}
+          <div style={{
+            position: "relative",
+            margin: "0 10px",
+            borderRadius: 10,
+            overflow: "hidden",
+            border: "3px solid transparent",
+            /* Gold border via background-clip trick */
+            backgroundImage: `${G_H}`,
+            padding: 3,
+          }}>
             <div style={{
-              width: 18, flexShrink: 0,
+              borderRadius: 8,
+              padding: "14px 20px 12px",
               background: [
-                "linear-gradient(90deg,",
-                "#888078 0%,",
-                "#d0c8b8 20%,",
-                "#f0e8d8 40%,",
-                "#c8c0b0 60%,",
-                "#a09890 80%,",
-                "#888078 100%)"
+                "linear-gradient(180deg,",
+                "#6a0a22 0%,",
+                "#4a0618 25%,",
+                "#380412 55%,",
+                "#280208 80%,",
+                "#380412 100%)"
               ].join(""),
-              boxShadow: "inset -2px 0 6px rgba(0,0,0,0.3), inset 2px 0 4px rgba(255,255,255,0.1)",
+              boxShadow: [
+                "inset 0 0 40px rgba(0,0,0,0.5)",
+                "inset 0 2px 0 rgba(255,80,80,0.1)",
+              ].join(","),
+              position: "relative",
             }}>
-              {[20, 60, 100, 140].map(top => (
-                <Screw key={top} style={{ top, left: "50%", transform: "translateX(-50%)", width: 9, height: 9 }} />
+              {/* Tiny stars/sparkles in background */}
+              {[
+                {top:"20%",left:"8%"},{top:"60%",left:"15%"},
+                {top:"30%",left:"85%"},{top:"70%",left:"90%"},
+                {top:"50%",left:"50%"},{top:"15%",left:"55%"},
+              ].map((pos,i) => (
+                <div key={i} style={{
+                  position:"absolute", fontSize:6, color:"rgba(255,200,160,0.4)",
+                  top:pos.top, left:pos.left, lineHeight:1,
+                }}>✦</div>
               ))}
-            </div>
 
-            {/* CENTER */}
-            <div style={{ flex: 1, padding: "16px 14px" }}>
-
-              {/* ── REELS HOUSING ── */}
-              <div style={{
-                borderRadius: 8,
-                marginBottom: 14,
-                padding: 8,
-                position: "relative",
-                background: [
-                  "linear-gradient(145deg,",
-                  "#c0b8a8 0%,",
-                  "#7a7268 20%,",
-                  "#5a5248 40%,",
-                  "#6a6258 65%,",
-                  "#9a9288 85%,",
-                  "#c0b8a8 100%)"
-                ].join(""),
-                boxShadow: [
-                  "0 0 0 1.5px #3a3228",
-                  "0 6px 20px rgba(0,0,0,0.8)",
-                  "inset 0 2px 4px rgba(255,255,255,0.2)",
-                  "inset 0 -2px 4px rgba(0,0,0,0.4)",
-                ].join(","),
-              }}>
-                <Screw style={{ top: 4, left: 4 }} />
-                <Screw style={{ top: 4, right: 4 }} />
-                <Screw style={{ bottom: 4, left: 4 }} />
-                <Screw style={{ bottom: 4, right: 4 }} />
-
-                {/* Reel window — black housing */}
-                <div style={{
-                  borderRadius: 5,
-                  padding: "10px 12px",
-                  background: "#0e0c08",
-                  boxShadow: [
-                    "inset 0 6px 24px rgba(0,0,0,1)",
-                    "inset 0 -4px 12px rgba(0,0,0,0.9)",
-                    "inset 3px 0 10px rgba(0,0,0,0.7)",
-                    "inset -3px 0 10px rgba(0,0,0,0.7)",
-                  ].join(","),
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: 10,
+              {/* "Literary Slots" — neon script like "Casino" on reference */}
+              <div style={{ textAlign: "center", position: "relative", zIndex: 2 }}>
+                <span style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  fontStyle: "italic",
+                  color: "#ff6060",
+                  letterSpacing: "0.04em",
+                  display: "block",
+                  lineHeight: 1.1,
+                  animation: "neon-casino 2.4s ease-in-out infinite",
                 }}>
-                  {([0, 1, 2] as const).map(i => (
-                    <Reel
-                      key={i}
-                      books={books}
-                      targetIdx={targets[i]}
-                      spinning={spinning}
-                      delay={i * 400}
-                      onDone={handleReelDone}
-                    />
-                  ))}
-                </div>
-
-                {/* Payline indicator */}
-                <div style={{
-                  position: "absolute",
-                  right: -28,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 2,
-                }}>
-                  <div style={{
-                    width: 20, height: 1.5,
-                    background: "rgba(255,210,60,0.6)",
-                    boxShadow: "0 0 4px rgba(255,210,60,0.4)",
-                  }} />
-                  <span style={{ fontFamily: "monospace", fontSize: 6, color: "#c8a000", letterSpacing: "0.05em", writingMode: "vertical-rl" }}>
-                    PAYLINE
-                  </span>
-                </div>
+                  Literary Slots
+                </span>
               </div>
 
-              {/* ── CONTROL PANEL ── */}
+              {/* Gold ornament lines below title */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 6, marginTop: 6,
+                justifyContent: "center",
+              }}>
+                <div style={{ flex: 1, height: 1, background: "linear-gradient(to right,transparent,rgba(200,144,16,0.6))" }} />
+                <span style={{ color:"rgba(200,144,16,0.7)", fontSize:8 }}>◆</span>
+                <div style={{ flex: 1, height: 1, background: "linear-gradient(to left,transparent,rgba(200,144,16,0.6))" }} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── GOLD SEPARATOR LEDGE under marquee ── */}
+          <div style={{
+            margin: "6px 10px",
+            height: 10,
+            background: G_H,
+            borderRadius: 5,
+            boxShadow: [
+              "0 3px 8px rgba(0,0,0,0.5)",
+              "inset 0 1px 0 rgba(255,240,120,0.6)",
+              "inset 0 -2px 0 rgba(80,40,0,0.5)",
+            ].join(","),
+          }} />
+
+          {/* ── REELS SECTION ── */}
+          <div style={{
+            margin: "0 10px",
+            position: "relative",
+          }}>
+            {/* Gold outer bezel */}
+            <div style={{
+              borderRadius: 10,
+              padding: 6,
+              background: G_H,
+              boxShadow: [
+                "0 0 0 1px #7a5000",
+                "0 6px 18px rgba(0,0,0,0.75)",
+                "inset 0 2px 0 rgba(255,240,130,0.4)",
+                "inset 0 -2px 0 rgba(80,40,0,0.5)",
+              ].join(","),
+            }}>
+              {/* Corner rivets on bezel */}
+              <Rivet style={{ top: 4, left: 4 }} />
+              <Rivet style={{ top: 4, right: 4 }} />
+              <Rivet style={{ bottom: 4, left: 4 }} />
+              <Rivet style={{ bottom: 4, right: 4 }} />
+
+              {/* Dark reel housing */}
               <div style={{
                 borderRadius: 6,
-                padding: "12px 16px",
-                background: [
-                  "linear-gradient(180deg,",
-                  "#908880 0%,",
-                  "#706860 30%,",
-                  "#606058 60%,",
-                  "#706860 100%)"
-                ].join(""),
+                padding: "10px 10px",
+                background: "#180e06",
                 boxShadow: [
-                  "inset 0 2px 6px rgba(0,0,0,0.5)",
-                  "inset 0 -1px 0 rgba(255,255,255,0.08)",
-                  "inset 3px 0 6px rgba(0,0,0,0.2)",
-                  "inset -3px 0 6px rgba(0,0,0,0.2)",
+                  "inset 0 6px 20px rgba(0,0,0,0.95)",
+                  "inset 0 -4px 12px rgba(0,0,0,0.8)",
+                  "inset 4px 0 12px rgba(0,0,0,0.6)",
+                  "inset -4px 0 12px rgba(0,0,0,0.6)",
                 ].join(","),
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 8,
               }}>
-                {/* Left: LCD + status lights */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                  <LCD spinning={spinning} done={done} />
-                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    {[
-                      spinning ? { c: "#ff3030", g: "0 0 10px rgba(255,50,50,0.9), 0 0 20px rgba(255,50,50,0.4)" } : done ? { c: "#ffd700", g: "0 0 10px rgba(255,215,0,0.9)" } : { c: "#221810", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
-                      spinning ? { c: "#ffaa00", g: "0 0 10px rgba(255,170,0,0.9)" } : done ? { c: "#ffd700", g: "0 0 8px rgba(255,215,0,0.8)" } : { c: "#201808", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
-                      spinning ? { c: "#ff3030", g: "0 0 10px rgba(255,50,50,0.9)" } : done ? { c: "#ffd700", g: "0 0 10px rgba(255,215,0,0.9)" } : { c: "#221810", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
-                    ].map((b, i) => (
-                      <div key={i} style={{
-                        width: 10, height: 10, borderRadius: "50%",
-                        background: `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.5) 0%, ${b.c} 50%, rgba(0,0,0,0.4) 100%)`,
-                        boxShadow: b.g,
-                        border: "1px solid rgba(0,0,0,0.5)",
-                        transition: "all 0.25s",
-                      }} />
-                    ))}
-                    <span style={{ fontFamily: "monospace", fontSize: 7, color: "#6a5a40", letterSpacing: "0.08em" }}>STATUS</span>
-                  </div>
-                </div>
-
-                {/* Center: big button */}
-                <BigButton onClick={onSpin} spinning={spinning} done={done} />
-
-                {/* Right: coin slot + utility buttons */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end", flex: 1 }}>
-                  <CoinSlot />
-                  <div style={{ display: "flex", gap: 4 }}>
-                    {["BET", "MAX", "PAY"].map(label => (
-                      <div key={label} style={{
-                        padding: "3px 7px",
-                        background: "linear-gradient(180deg, #e0d8c8 0%, #b8b0a0 50%, #c8c0b0 100%)",
-                        borderRadius: 3,
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2)",
-                        border: "1px solid rgba(80,70,60,0.5)",
-                        cursor: "default",
-                      }}>
-                        <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, color: "#282018", letterSpacing: "0.1em" }}>
-                          {label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {([0, 1, 2] as const).map(i => (
+                  <Reel
+                    key={i}
+                    books={books}
+                    targetIdx={targets[i]}
+                    spinning={spinning}
+                    delay={i * 400}
+                    onDone={handleReelDone}
+                  />
+                ))}
               </div>
-            </div>
-
-            {/* Right chrome rail */}
-            <div style={{
-              width: 18, flexShrink: 0,
-              background: [
-                "linear-gradient(90deg,",
-                "#888078 0%,",
-                "#a09890 20%,",
-                "#c8c0b0 40%,",
-                "#f0e8d8 60%,",
-                "#d0c8b8 80%,",
-                "#888078 100%)"
-              ].join(""),
-              boxShadow: "inset 2px 0 6px rgba(0,0,0,0.3), inset -2px 0 4px rgba(255,255,255,0.1)",
-            }}>
-              {[20, 60, 100, 140].map(top => (
-                <Screw key={top} style={{ top, left: "50%", transform: "translateX(-50%)", width: 9, height: 9 }} />
-              ))}
             </div>
           </div>
 
-          {/* ── BOTTOM BASE PLATE ── */}
+          {/* ── GOLD SEPARATOR LEDGE between reels and control panel ── */}
           <div style={{
-            margin: "0 0",
-            height: 22,
-            borderRadius: "0 0 14px 14px",
-            background: "linear-gradient(180deg, #888078 0%, #605850 40%, #504840 100%)",
+            margin: "6px 10px",
+            height: 10,
+            background: G_H,
+            borderRadius: 5,
             boxShadow: [
-              "inset 0 2px 4px rgba(0,0,0,0.5)",
-              "inset 0 1px 0 rgba(255,255,255,0.08)",
+              "0 3px 8px rgba(0,0,0,0.5)",
+              "inset 0 1px 0 rgba(255,240,120,0.6)",
+              "inset 0 -2px 0 rgba(80,40,0,0.5)",
+            ].join(","),
+          }} />
+
+          {/* ── CONTROL PANEL — buttons row ── */}
+          <div style={{
+            margin: "0 10px",
+            borderRadius: 8,
+            padding: "8px 12px",
+            background: G_DARK,
+            boxShadow: [
+              "inset 0 3px 8px rgba(0,0,0,0.55)",
+              "inset 0 -1px 0 rgba(255,240,80,0.15)",
             ].join(","),
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            gap: 16,
+            justifyContent: "space-between",
+            gap: 8,
           }}>
-            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
-            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
-            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
+            {/* Small cream/gold buttons like reference keyboard */}
+            <div style={{ display: "flex", gap: 5, flexWrap: "wrap", flex: 1 }}>
+              {["◀","●","▶","■","▲"].map((sym, i) => (
+                <div key={i} style={{
+                  width: 28, height: 22,
+                  borderRadius: 4,
+                  background: "linear-gradient(180deg,#f0e8d0 0%,#d8c8a0 50%,#c0b080 100%)",
+                  boxShadow: "0 3px 5px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,200,0.5),inset 0 -2px 0 rgba(80,60,0,0.4)",
+                  border: "1px solid rgba(120,90,0,0.5)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 8, color: "#4a3010", fontWeight: 700 }}>{sym}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Spin button center */}
+            <SpinButton onClick={onSpin} spinning={spinning} done={done} />
+
+            {/* Right: coin slot + labels */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end", flex: 1 }}>
+              {/* Coin slot */}
+              <div style={{
+                width: 50, height: 7,
+                background: "linear-gradient(180deg,#0a0604,#1a1008,#0a0604)",
+                borderRadius: 3,
+                boxShadow: "inset 0 2px 6px rgba(0,0,0,1),0 1px 0 rgba(255,200,80,0.15)",
+                border: "1px solid rgba(100,70,0,0.5)",
+              }} />
+              <span style={{ fontFamily: "monospace", fontSize: 7, color: "#c8a020", letterSpacing: "0.12em" }}>◂ COIN ▸</span>
+              {/* Small utility buttons */}
+              <div style={{ display: "flex", gap: 4 }}>
+                {["BET","MAX"].map(l => (
+                  <div key={l} style={{
+                    padding: "2px 7px",
+                    background: "linear-gradient(180deg,#f0e8d0,#c8b880)",
+                    borderRadius: 3,
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,200,0.5)",
+                    border: "1px solid rgba(100,70,0,0.4)",
+                  }}>
+                    <span style={{ fontFamily:"monospace", fontSize:7, fontWeight:700, color:"#4a3010", letterSpacing:"0.08em" }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Corner screws */}
-          <Screw style={{ top: 10, left: 10 }} />
-          <Screw style={{ top: 10, right: 10 }} />
+          {/* ── GOLD LEDGE between control and bottom panel ── */}
+          <div style={{
+            margin: "6px 10px",
+            height: 10,
+            background: G_H,
+            borderRadius: 5,
+            boxShadow: [
+              "0 3px 8px rgba(0,0,0,0.5)",
+              "inset 0 1px 0 rgba(255,240,120,0.6)",
+              "inset 0 -2px 0 rgba(80,40,0,0.5)",
+            ].join(","),
+          }} />
 
-          {/* Lever */}
+          {/* ── BOTTOM PANEL — dark red with neon "Literary" and LED ── */}
+          <div style={{
+            margin: "0 10px",
+            borderRadius: 8,
+            overflow: "hidden",
+            border: "2px solid transparent",
+            backgroundImage: G_H,
+            padding: 3,
+          }}>
+            <div style={{
+              borderRadius: 6,
+              padding: "12px 16px",
+              background: [
+                "linear-gradient(180deg,",
+                "#5a0820 0%,",
+                "#3c0414 40%,",
+                "#280210 70%,",
+                "#3c0414 100%)"
+              ].join(""),
+              boxShadow: "inset 0 0 30px rgba(0,0,0,0.5)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              position: "relative",
+            }}>
+              {/* Stars background */}
+              {[
+                {top:"15%",left:"6%"},{top:"65%",left:"12%"},
+                {top:"25%",left:"88%"},{top:"75%",left:"82%"},
+                {top:"45%",left:"45%"},
+              ].map((pos,i) => (
+                <div key={i} style={{
+                  position:"absolute",fontSize:5,color:"rgba(255,180,140,0.3)",
+                  top:pos.top, left:pos.left,
+                }}>✦</div>
+              ))}
+
+              {/* "Literary" neon — like "Colts" on reference */}
+              <span style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 22,
+                fontWeight: 700,
+                fontStyle: "italic",
+                color: "#ff5050",
+                letterSpacing: "0.06em",
+                animation: "neon-bottom 2.2s ease-in-out infinite",
+                position: "relative", zIndex: 2,
+              }}>
+                Literary
+              </span>
+
+              {/* Bulb row */}
+              <div style={{ display:"flex", gap:8, alignItems:"center", zIndex:2, position:"relative" }}>
+                {bulbColors.map((c, i) => (
+                  <Bulb key={i} on={bulbOn} color={c} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── BOTTOM BASE — LED display row ── */}
+          <div style={{
+            margin: "6px 10px 10px",
+            borderRadius: 6,
+            padding: "6px 12px",
+            background: G_DARK,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            boxShadow: "inset 0 3px 8px rgba(0,0,0,0.5)",
+          }}>
+            <LedDisplay spinning={spinning} done={done} />
+          </div>
+
+          {/* Body corner rivets */}
+          <Rivet style={{ top: 12, left: 12 }} />
+          <Rivet style={{ top: 12, right: 12 }} />
+
+          {/* ── LEVER ── */}
           <Lever onClick={onSpin} spinning={spinning} />
         </div>
 
         {/* Ground shadow */}
         <div style={{
-          margin: "6px auto 0",
-          width: "80%",
-          height: 12,
-          background: "radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.6), transparent)",
+          margin: "8px auto 0",
+          width: "75%",
+          height: 14,
+          background: "radial-gradient(ellipse at 50% 0%,rgba(0,0,0,0.65),transparent)",
           borderRadius: "50%",
         }} />
       </div>
