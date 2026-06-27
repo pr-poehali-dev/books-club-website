@@ -70,12 +70,13 @@ export default function MainSections() {
           <SectionTitle sub="Май 2026">Книга месяца</SectionTitle>
           <div className="grid md:grid-cols-2 gap-10 items-start">
             <div className="text-center md:text-left">
-              <div className="inline-block mb-8">
-                <div className="bg-leather rounded-2xl p-10 text-center w-48 mx-auto md:mx-0 shadow-2xl shadow-black/50">
-                  <div className="font-display text-gold text-xs tracking-widest uppercase mb-3 font-semibold">Книга</div>
-                  <div className="font-display text-parchment text-2xl leading-tight font-semibold">Повелитель<br/>мух</div>
-                  <div className="mt-3 text-gold-dim text-xs font-body italic">У. Голдинг</div>
-                </div>
+              <div className="mb-8 flex justify-center md:justify-start">
+                <img
+                  src="https://cdn.poehali.dev/projects/d1e3655d-4032-44e7-ac28-0afea4a15ee2/bucket/e147b363-309b-4450-a93d-ca234d8b7d73.jpg"
+                  alt="Повелитель мух — Уильям Голдинг"
+                  className="w-44 rounded-xl shadow-2xl shadow-black/60 object-cover"
+                  style={{ aspectRatio: "2/3" }}
+                />
               </div>
 
               <div className="bg-background rounded-2xl p-6 text-left border border-white/5">
