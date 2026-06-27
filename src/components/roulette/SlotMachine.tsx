@@ -1,13 +1,35 @@
 import { useRef, useEffect, useState } from "react";
 import type { Book } from "@/data/randomizerConstants";
 
-const ITEM_H = 88;
+const ITEM_H = 90;
 const VISIBLE = 3;
-const SPIN_ROWS = 28;
+const SPIN_ROWS = 30;
 
-/* ═══════════════════════════════════════════════
-   REEL STRIP — бумажный барабан с текстом
-═══════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────
+   CSS injected once for animations
+───────────────────────────────────────────── */
+const STYLES = `
+  @keyframes bulb-flicker {
+    0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:0.4} 95%{opacity:1} 97%{opacity:0.6} 98%{opacity:1}
+  }
+  @keyframes scanline {
+    0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)}
+  }
+  @keyframes jackpot-glow {
+    0%,100%{text-shadow:0 0 6px #22ff44,0 0 12px #22ff44}
+    50%{text-shadow:0 0 12px #22ff44,0 0 24px #22ff44,0 0 40px #22ff44}
+  }
+  @keyframes lever-return {
+    0%{transform:rotate(0deg)} 30%{transform:rotate(22deg)} 100%{transform:rotate(0deg)}
+  }
+  @keyframes reel-blur {
+    0%,100%{filter:blur(0px)} 20%,80%{filter:blur(1.5px)}
+  }
+`;
+
+/* ─────────────────────────────────────────────
+   REEL
+───────────────────────────────────────────── */
 interface ReelProps {
   books: Book[];
   targetIdx: number;
@@ -30,18 +52,14 @@ function Reel({ books, targetIdx, spinning, delay, onDone }: ReelProps) {
     doneRef.current = false;
     const el = stripRef.current;
     if (!el) return;
-
     el.style.transition = "none";
     el.style.transform  = "translateY(0px)";
-
     const totalPx  = SPIN_ROWS * ITEM_H;
-    const duration = 1.8 + delay / 1000;
-
+    const duration = 1.9 + delay / 1000;
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      el.style.transition = `transform ${duration}s cubic-bezier(0.08, 0.9, 0.2, 1.0)`;
+      el.style.transition = `transform ${duration}s cubic-bezier(0.05,0.92,0.18,1.0)`;
       el.style.transform  = `translateY(-${totalPx}px)`;
     }));
-
     const timer = setTimeout(() => {
       if (!doneRef.current) { doneRef.current = true; onDone(); }
     }, (duration + delay / 1000) * 1000);
@@ -49,19 +67,27 @@ function Reel({ books, targetIdx, spinning, delay, onDone }: ReelProps) {
   }, [spinning]);
 
   return (
-    /* Outer chrome bezel of one reel window */
     <div style={{
       position: "relative",
-      width: "100%",
       height: ITEM_H * VISIBLE,
-      borderRadius: 6,
       overflow: "hidden",
-      /* Inset chrome */
-      boxShadow: "inset 0 3px 10px rgba(0,0,0,0.9), inset 0 -2px 6px rgba(0,0,0,0.7), inset 2px 0 6px rgba(0,0,0,0.5), inset -2px 0 6px rgba(0,0,0,0.5)",
-      background: "#f5f0e8",
+      borderRadius: 3,
+      /* Deep inset well */
+      background: "#e8e2d6",
+      boxShadow: [
+        "inset 0 4px 16px rgba(0,0,0,0.95)",
+        "inset 0 -3px 10px rgba(0,0,0,0.8)",
+        "inset 3px 0 10px rgba(0,0,0,0.7)",
+        "inset -3px 0 10px rgba(0,0,0,0.7)",
+      ].join(","),
     }}>
-      {/* Paper reel strip */}
-      <div ref={stripRef} style={{ willChange: "transform" }}>
+      {/* Reel drum strip */}
+      <div
+        ref={stripRef}
+        style={{
+          willChange: "transform",
+          animation: spinning ? `reel-blur ${0.3}s ease infinite` : "none",
+        }}>
         {tape.map((book, i) => (
           <div key={i} style={{
             height: ITEM_H,
@@ -69,35 +95,48 @@ function Reel({ books, targetIdx, spinning, delay, onDone }: ReelProps) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "6px 10px",
+            padding: "4px 8px",
             textAlign: "center",
-            /* Horizontal ruled lines like real slot paper */
-            borderBottom: "1px solid rgba(0,0,0,0.08)",
-            background: i % 2 === 0 ? "#fdfaf4" : "#f5f0e8",
+            background: i % 2 === 0
+              ? "linear-gradient(180deg,#fefefc 0%,#f8f4ec 100%)"
+              : "linear-gradient(180deg,#f4efE5 0%,#ede8db 100%)",
+            borderBottom: "1px solid rgba(0,0,0,0.1)",
+            /* Subtle drum curvature simulation */
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
           }}>
+            {/* Thin ruled lines */}
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: "repeating-linear-gradient(180deg,transparent,transparent 14px,rgba(0,0,0,0.04) 14px,rgba(0,0,0,0.04) 15px)",
+              pointerEvents: "none",
+            }} />
             <p style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: 700,
-              color: "#1a0f00",
-              lineHeight: 1.3,
+              color: "#180c00",
+              lineHeight: 1.25,
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              marginBottom: 3,
+              marginBottom: 2,
+              position: "relative",
             }}>
               {book.title}
             </p>
             <p style={{
               fontFamily: "Inter, sans-serif",
-              fontSize: 10,
+              fontSize: 9.5,
               color: "#7a5a30",
-              whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
               width: "100%",
               textAlign: "center",
+              position: "relative",
+              letterSpacing: "0.02em",
             }}>
               {book.author}
             </p>
@@ -105,254 +144,355 @@ function Reel({ books, targetIdx, spinning, delay, onDone }: ReelProps) {
         ))}
       </div>
 
-      {/* Top dark fade */}
+      {/* Top depth shadow */}
       <div style={{
-        position: "absolute", inset: "0 0 auto 0", height: 28, zIndex: 10, pointerEvents: "none",
-        background: "linear-gradient(to bottom, rgba(20,14,4,0.85) 0%, rgba(20,14,4,0) 100%)",
+        position: "absolute", inset: "0 0 auto 0", height: 36, zIndex: 10,
+        pointerEvents: "none",
+        background: "linear-gradient(to bottom, rgba(10,6,2,0.92) 0%, rgba(10,6,2,0.5) 60%, transparent 100%)",
       }} />
-      {/* Bottom dark fade */}
+      {/* Bottom depth shadow */}
       <div style={{
-        position: "absolute", inset: "auto 0 0 0", height: 28, zIndex: 10, pointerEvents: "none",
-        background: "linear-gradient(to top, rgba(20,14,4,0.85) 0%, rgba(20,14,4,0) 100%)",
+        position: "absolute", inset: "auto 0 0 0", height: 36, zIndex: 10,
+        pointerEvents: "none",
+        background: "linear-gradient(to top, rgba(10,6,2,0.92) 0%, rgba(10,6,2,0.5) 60%, transparent 100%)",
       }} />
-      {/* Center gold highlight lines */}
+      {/* Drum-curve sheen — left */}
       <div style={{
-        position: "absolute", inset: 0, zIndex: 20, pointerEvents: "none",
+        position: "absolute", inset: "0 auto 0 0", width: 8, zIndex: 9,
+        pointerEvents: "none",
+        background: "linear-gradient(to right, rgba(0,0,0,0.35), transparent)",
+      }} />
+      {/* Drum-curve sheen — right */}
+      <div style={{
+        position: "absolute", inset: "0 0 0 auto", width: 8, zIndex: 9,
+        pointerEvents: "none",
+        background: "linear-gradient(to left, rgba(0,0,0,0.35), transparent)",
+      }} />
+      {/* Center payline highlight */}
+      <div style={{
+        position: "absolute", zIndex: 20, pointerEvents: "none",
         top: ITEM_H * ((VISIBLE - 1) / 2),
+        left: 0, right: 0,
         height: ITEM_H,
-        borderTop: "2px solid rgba(218,165,32,0.8)",
-        borderBottom: "2px solid rgba(218,165,32,0.8)",
-        boxShadow: "0 0 8px rgba(218,165,32,0.3)",
+        borderTop: "1.5px solid rgba(255,210,60,0.85)",
+        borderBottom: "1.5px solid rgba(255,210,60,0.85)",
+        boxShadow: "0 0 0 1px rgba(255,210,60,0.15), 0 0 10px rgba(255,210,60,0.15)",
       }} />
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   LEVER — красный рычаг сбоку
-═══════════════════════════════════════════════ */
-interface LeverProps { onClick: () => void; spinning: boolean; }
+/* ─────────────────────────────────────────────
+   SCREW — маленький металлический винт
+───────────────────────────────────────────── */
+function Screw({ style = {} }: { style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      width: 12, height: 12, borderRadius: "50%",
+      background: "radial-gradient(circle at 38% 30%, #e0d8cc, #a09890 40%, #706860 75%, #504840)",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.25)",
+      position: "absolute",
+      zIndex: 20,
+      ...style,
+    }}>
+      {/* Phillips cross */}
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "absolute", width: 1, height: 7, background: "rgba(0,0,0,0.5)", borderRadius: 1 }} />
+        <div style={{ position: "absolute", width: 7, height: 1, background: "rgba(0,0,0,0.5)", borderRadius: 1 }} />
+      </div>
+    </div>
+  );
+}
 
-function Lever({ onClick, spinning }: LeverProps) {
+/* ─────────────────────────────────────────────
+   LEVER
+───────────────────────────────────────────── */
+function Lever({ onClick, spinning }: { onClick: () => void; spinning: boolean }) {
   const [pulled, setPulled] = useState(false);
 
   const handleClick = () => {
     if (spinning) return;
     setPulled(true);
-    setTimeout(() => { setPulled(false); onClick(); }, 180);
+    setTimeout(() => { setPulled(false); onClick(); }, 220);
   };
 
   return (
     <div
       onClick={handleClick}
+      title="Дёрнуть рычаг"
       style={{
         position: "absolute",
-        right: -52,
-        top: "50%",
-        transform: "translateY(-50%)",
+        right: -58,
+        top: "38%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        cursor: spinning ? "default" : "pointer",
+        cursor: spinning ? "default" : "grab",
         userSelect: "none",
+        zIndex: 40,
+        opacity: spinning ? 0.45 : 1,
+        transition: "opacity 0.3s",
+        transformOrigin: "bottom center",
+        animation: pulled ? "lever-return 0.4s ease-out" : "none",
         gap: 0,
-        zIndex: 30,
-        opacity: spinning ? 0.5 : 1,
-        transition: "opacity 0.2s",
       }}>
-      {/* Ball */}
+
+      {/* Ball knob */}
       <div style={{
-        width: 28, height: 28,
+        width: 32, height: 32,
         borderRadius: "50%",
-        background: "radial-gradient(circle at 35% 28%, #ff6b6b, #c0392b 50%, #7b0000)",
-        boxShadow: "0 3px 8px rgba(0,0,0,0.6), inset 0 1px 3px rgba(255,180,180,0.4)",
-        transform: pulled ? "translateY(8px) scale(0.92)" : "translateY(0) scale(1)",
-        transition: "transform 0.15s",
+        background: [
+          "radial-gradient(circle at 30% 22%, rgba(255,200,200,0.9) 0%, #e84040 25%, #c0292b 55%, #7a0a0a 85%, #3a0000 100%)"
+        ].join(","),
+        boxShadow: [
+          "0 4px 12px rgba(0,0,0,0.7)",
+          "0 1px 0 rgba(255,180,180,0.3) inset",
+          "0 -2px 4px rgba(0,0,0,0.5) inset",
+        ].join(","),
+        transform: pulled ? "translateY(28px) scale(0.9)" : "translateY(0) scale(1)",
+        transition: "transform 0.18s cubic-bezier(0.4,0,0.2,1)",
         flexShrink: 0,
-      }} />
-      {/* Arm */}
+        position: "relative",
+      }}>
+        {/* Specular highlight */}
+        <div style={{
+          position: "absolute",
+          top: 5, left: 6,
+          width: 10, height: 7,
+          borderRadius: "50%",
+          background: "radial-gradient(ellipse, rgba(255,255,255,0.7), transparent)",
+          transform: "rotate(-20deg)",
+        }} />
+      </div>
+
+      {/* Arm shaft */}
       <div style={{
-        width: 8, height: pulled ? 50 : 80,
-        background: "linear-gradient(90deg, #e8e0d0, #b0a898, #c8c0b0, #888074)",
-        borderRadius: 4,
-        boxShadow: "2px 0 4px rgba(0,0,0,0.4)",
-        transition: "height 0.15s",
-        transformOrigin: "top center",
+        width: 10,
+        height: pulled ? 52 : 88,
+        background: "linear-gradient(90deg, #d8d0c4 0%, #f0ece4 30%, #c8c0b4 60%, #a09890 80%, #888078 100%)",
+        borderRadius: 5,
+        boxShadow: [
+          "2px 0 6px rgba(0,0,0,0.5)",
+          "-1px 0 2px rgba(255,255,255,0.15)",
+          "inset 2px 0 3px rgba(255,255,255,0.2)",
+        ].join(","),
+        transition: "height 0.18s cubic-bezier(0.4,0,0.2,1)",
         flexShrink: 0,
+        marginTop: -1,
+        marginBottom: -1,
       }} />
-      {/* Base */}
+
+      {/* Pivot base */}
       <div style={{
-        width: 20, height: 10,
-        background: "linear-gradient(180deg, #c8a000, #8a6e00)",
-        borderRadius: 3,
-        boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+        width: 22, height: 14,
+        borderRadius: "0 0 6px 6px",
+        background: "linear-gradient(180deg, #c8a000 0%, #8a6800 50%, #5a4200 100%)",
+        boxShadow: "0 3px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,80,0.3)",
         flexShrink: 0,
-      }} />
+        position: "relative",
+      }}>
+        <Screw style={{ top: 1, left: "50%", transform: "translateX(-50%)", width: 8, height: 8 }} />
+      </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   BIG SPIN BUTTON — красная кнопка
-═══════════════════════════════════════════════ */
-interface SpinButtonProps { onClick: () => void; spinning: boolean; done: boolean; }
-
-function SpinButton({ onClick, spinning, done }: SpinButtonProps) {
+/* ─────────────────────────────────────────────
+   BIG RED BUTTON
+───────────────────────────────────────────── */
+function BigButton({ onClick, spinning, done }: { onClick: () => void; spinning: boolean; done: boolean }) {
   const [pressed, setPressed] = useState(false);
 
-  const handleClick = () => {
+  const handle = () => {
     if (spinning) return;
     setPressed(true);
-    setTimeout(() => setPressed(false), 150);
+    setTimeout(() => setPressed(false), 140);
     onClick();
   };
 
+  const isGold = done && !spinning;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      {/* Button outer ring */}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+      {/* Outer chrome ring */}
       <div style={{
-        width: 72, height: 72,
+        width: 80, height: 80,
         borderRadius: "50%",
-        background: "linear-gradient(145deg, #5a4400, #3a2c00)",
-        boxShadow: "0 0 0 3px #c8a000, 0 6px 20px rgba(0,0,0,0.7)",
+        background: "radial-gradient(circle at 35% 30%, #f0ece4, #c0b8ac 40%, #9a9288 70%, #706860)",
+        boxShadow: [
+          "0 0 0 1px rgba(255,255,255,0.15)",
+          "0 6px 24px rgba(0,0,0,0.8)",
+          "0 2px 4px rgba(0,0,0,0.6)",
+          "inset 0 1px 0 rgba(255,255,255,0.3)",
+        ].join(","),
         display: "flex", alignItems: "center", justifyContent: "center",
+        position: "relative",
       }}>
-        {/* Button top */}
-        <div
-          onClick={handleClick}
-          style={{
-            width: 58, height: 58,
-            borderRadius: "50%",
-            background: spinning
-              ? "radial-gradient(circle at 38% 32%, #ff9999, #c0392b 45%, #7b0000)"
-              : done
-              ? "radial-gradient(circle at 38% 32%, #ffe066, #daa520 45%, #7a5c00)"
-              : "radial-gradient(circle at 38% 32%, #ff6b6b, #c0392b 45%, #8b0000)",
-            boxShadow: pressed
-              ? "0 1px 4px rgba(0,0,0,0.8), inset 0 3px 8px rgba(0,0,0,0.4)"
-              : spinning
-              ? "0 2px 8px rgba(200,50,50,0.4), 0 0 16px rgba(200,50,50,0.3)"
-              : done
-              ? "0 4px 12px rgba(218,165,32,0.7), 0 0 20px rgba(218,165,32,0.4)"
-              : "0 4px 12px rgba(0,0,0,0.6), inset 0 1px 3px rgba(255,150,150,0.3)",
-            cursor: spinning ? "not-allowed" : "pointer",
-            transform: pressed ? "scale(0.93) translateY(2px)" : "scale(1)",
-            transition: "all 0.12s",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-          <span style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.9)",
-            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-          }}>
-            {spinning ? "SPIN" : done ? "AGAIN" : "SPIN"}
-          </span>
+        {/* Inner recess ring */}
+        <div style={{
+          width: 68, height: 68,
+          borderRadius: "50%",
+          background: "linear-gradient(145deg, #2a2018, #1a1208)",
+          boxShadow: "inset 0 3px 8px rgba(0,0,0,0.9), inset 0 1px 0 rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          {/* The button cap */}
+          <div
+            onClick={handle}
+            style={{
+              width: 58, height: 58,
+              borderRadius: "50%",
+              cursor: spinning ? "not-allowed" : "pointer",
+              transform: pressed ? "scale(0.9) translateY(3px)" : "scale(1) translateY(0)",
+              transition: "transform 0.1s, box-shadow 0.1s",
+              position: "relative",
+              background: isGold
+                ? "radial-gradient(circle at 32% 24%, #ffe888 0%, #daa520 40%, #a07800 70%, #5a4200 100%)"
+                : spinning
+                ? "radial-gradient(circle at 32% 24%, #ff9999 0%, #d03030 40%, #900000 70%, #4a0000 100%)"
+                : "radial-gradient(circle at 32% 24%, #ff8888 0%, #e03535 35%, #b02020 60%, #700000 85%, #3a0000 100%)",
+              boxShadow: pressed
+                ? "0 1px 3px rgba(0,0,0,0.9), inset 0 4px 10px rgba(0,0,0,0.5)"
+                : isGold
+                ? "0 0 0 2px #ffd700, 0 4px 16px rgba(218,165,32,0.8), 0 0 30px rgba(218,165,32,0.4)"
+                : spinning
+                ? "0 2px 6px rgba(0,0,0,0.6)"
+                : "0 5px 16px rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,160,160,0.2)",
+            }}>
+            {/* Specular */}
+            <div style={{
+              position: "absolute",
+              top: 8, left: 10, width: 20, height: 13,
+              borderRadius: "50%",
+              background: "radial-gradient(ellipse, rgba(255,255,255,0.55), transparent)",
+              transform: "rotate(-25deg)",
+              pointerEvents: "none",
+            }} />
+            {/* Label */}
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{
+                fontFamily: "monospace",
+                fontSize: 8,
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                color: "rgba(255,255,255,0.85)",
+                textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+              }}>
+                {spinning ? "SPIN" : isGold ? "AGAIN" : "SPIN"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <span style={{
-        fontFamily: "monospace",
-        fontSize: 9,
-        color: "#7a5c30",
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-      }}>Press</span>
+      <span style={{ fontFamily: "monospace", fontSize: 8, color: "#888", letterSpacing: "0.12em" }}>PUSH</span>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   DISPLAY — монохромный дисплей
-═══════════════════════════════════════════════ */
-function Display({ spinning, done }: { spinning: boolean; done: boolean }) {
+/* ─────────────────────────────────────────────
+   BULB — декоративная лампочка
+───────────────────────────────────────────── */
+function Bulb({ color, glow, animate }: { color: string; glow: string; animate?: boolean }) {
   return (
     <div style={{
-      background: "#0a1a0a",
-      border: "2px solid #1a3a1a",
+      width: 14, height: 14, borderRadius: "50%",
+      background: `radial-gradient(circle at 32% 26%, rgba(255,255,255,0.7) 0%, ${color} 40%, rgba(0,0,0,0.3) 100%)`,
+      boxShadow: glow,
+      border: "1px solid rgba(0,0,0,0.4)",
+      animation: animate ? `bulb-flicker ${2.1 + Math.random()}s ease-in-out infinite` : "none",
+      flexShrink: 0,
+      position: "relative",
+    }}>
+      <div style={{
+        position: "absolute", top: 2, left: 2, width: 5, height: 3,
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.6)",
+        transform: "rotate(-15deg)",
+      }} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   LCD DISPLAY
+───────────────────────────────────────────── */
+function LCD({ spinning, done }: { spinning: boolean; done: boolean }) {
+  const text = done ? "JACKPOT!" : spinning ? "ROLLING.." : "INSERT >>>";
+
+  return (
+    <div style={{
+      background: "#0a1a08",
+      border: "2px solid #1a3010",
       borderRadius: 4,
-      padding: "4px 12px",
-      minWidth: 100,
-      textAlign: "center",
-      boxShadow: "inset 0 2px 6px rgba(0,0,0,0.8), 0 0 0 1px #0a2a0a",
+      padding: "5px 14px",
+      minWidth: 110,
       position: "relative",
       overflow: "hidden",
+      boxShadow: [
+        "inset 0 2px 8px rgba(0,0,0,0.9)",
+        "inset 0 0 0 1px rgba(0,50,0,0.5)",
+        "0 1px 0 rgba(255,255,255,0.05)",
+      ].join(","),
     }}>
-      {/* Scanlines overlay */}
+      {/* Screen glow */}
       <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)",
+        position: "absolute", inset: 0,
+        background: done
+          ? "radial-gradient(ellipse at 50% 50%, rgba(34,200,60,0.12), transparent)"
+          : spinning
+          ? "radial-gradient(ellipse at 50% 50%, rgba(34,180,40,0.08), transparent)"
+          : "radial-gradient(ellipse at 50% 50%, rgba(20,120,20,0.06), transparent)",
+        pointerEvents: "none",
+      }} />
+      {/* Scanline */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+        backgroundImage: "repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)",
       }} />
       <span style={{
-        fontFamily: "monospace",
+        fontFamily: "'Courier New', monospace",
         fontSize: 11,
         fontWeight: 700,
-        letterSpacing: "0.18em",
-        color: done ? "#22ff44" : spinning ? "#44dd22" : "#228844",
-        textShadow: `0 0 6px ${done ? "#22ff44" : "#228844"}`,
-        position: "relative", zIndex: 2,
+        letterSpacing: "0.15em",
+        color: done ? "#22ff44" : "#1acc38",
+        textShadow: done
+          ? "0 0 6px #22ff44, 0 0 12px #22ff44"
+          : "0 0 4px #1acc38",
+        position: "relative", zIndex: 3,
+        animation: done ? "jackpot-glow 0.7s ease-in-out infinite" : "none",
+        display: "block",
+        textAlign: "center",
       }}>
-        {done ? "JACKPOT!" : spinning ? "ROLLING.." : "INSERT>>>"}
+        {text}
       </span>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   INDICATOR LIGHTS
-═══════════════════════════════════════════════ */
-function Lights({ spinning, done }: { spinning: boolean; done: boolean }) {
-  const colors = spinning
-    ? ["#ff4444", "#ff8800", "#ff4444"]
-    : done
-    ? ["#ffd700", "#ffee00", "#ffd700"]
-    : ["#331100", "#221100", "#331100"];
-
-  const glows = spinning
-    ? ["rgba(255,68,68,0.8)", "rgba(255,136,0,0.8)", "rgba(255,68,68,0.8)"]
-    : done
-    ? ["rgba(255,215,0,0.9)", "rgba(255,238,0,0.9)", "rgba(255,215,0,0.9)"]
-    : ["none", "none", "none"];
-
-  return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      {colors.map((c, i) => (
-        <div key={i} style={{
-          width: 12, height: 12,
-          borderRadius: "50%",
-          background: `radial-gradient(circle at 35% 30%, ${c}, rgba(0,0,0,0.4))`,
-          boxShadow: glows[i] !== "none" ? `0 0 8px ${glows[i]}, 0 0 16px ${glows[i]}` : "inset 0 1px 2px rgba(0,0,0,0.6)",
-          border: "1px solid rgba(0,0,0,0.4)",
-          transition: "all 0.3s",
-        }} />
-      ))}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════
-   COIN SLOT — декоративная щель для монет
-═══════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────
+   COIN SLOT
+───────────────────────────────────────────── */
 function CoinSlot() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
       <div style={{
-        width: 40, height: 5,
-        background: "linear-gradient(180deg, #111, #333)",
+        width: 44, height: 6,
+        background: "linear-gradient(180deg, #0a0806 0%, #1a1610 50%, #0a0806 100%)",
         borderRadius: 2,
-        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05)",
-        border: "1px solid #555",
+        boxShadow: "inset 0 2px 5px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.06), 0 -1px 0 rgba(255,255,255,0.04)",
+        border: "1px solid rgba(80,70,60,0.6)",
       }} />
-      <span style={{ fontFamily: "monospace", fontSize: 7, color: "#555", letterSpacing: "0.1em" }}>COIN</span>
+      <span style={{ fontFamily: "monospace", fontSize: 6.5, color: "#6a5a40", letterSpacing: "0.12em" }}>◂ INSERT ▸</span>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════
-   SLOT MACHINE — главный компонент
-═══════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────
+   MAIN SLOT MACHINE
+───────────────────────────────────────────── */
 export interface SlotMachineProps {
   books: Book[];
   targets: [number, number, number];
@@ -371,216 +511,382 @@ export default function SlotMachine({ books, targets, spinning, onSpin, onDone }
 
   const handleReelDone = () => {
     setDoneCount(prev => {
-      const next = prev + 1;
-      if (next >= 3) onDone();
-      return next;
+      const n = prev + 1;
+      if (n >= 3) onDone();
+      return n;
     });
   };
 
+  // Bulb colors cycling
+  const bulbCfg = [
+    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#ffd700", g: spinning ? "0 0 10px rgba(255,210,0,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#44aaff", g: spinning ? "0 0 10px rgba(60,150,255,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#ffd700", g: spinning ? "0 0 14px rgba(255,215,0,1)" : done ? "0 0 10px rgba(255,200,0,0.9)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#44aaff", g: spinning ? "0 0 10px rgba(60,150,255,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+    { c: "#ff4444", g: spinning ? "0 0 10px rgba(255,60,60,0.9)" : done ? "0 0 8px rgba(255,200,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.8)" },
+  ];
+
+  const off = { c: "#332820", g: "inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.03)" };
+
   return (
-    /* Outer wrapper — room for lever */
-    <div style={{ position: "relative", width: "100%", maxWidth: 580, margin: "0 auto" }}>
+    <>
+      <style>{STYLES}</style>
 
-      {/* ── MACHINE BODY ── */}
-      <div style={{
-        position: "relative",
-        borderRadius: 16,
-        overflow: "visible",
-        /* Brushed steel base */
-        background: "linear-gradient(160deg, #d4cfc8 0%, #b8b3aa 20%, #9c9890 50%, #b0aba3 80%, #c8c3bc 100%)",
-        boxShadow: [
-          "0 0 0 2px #888480",
-          "0 0 0 4px #706c68",
-          "0 30px 80px rgba(0,0,0,0.9)",
-          "inset 0 1px 0 rgba(255,255,255,0.4)",
-          "inset 0 -2px 0 rgba(0,0,0,0.3)",
-        ].join(", "),
-        padding: "0 0 20px 0",
-      }}>
+      {/* Room for lever on the right */}
+      <div style={{ position: "relative", width: "100%", maxWidth: 560, margin: "0 auto" }}>
 
-        {/* ── TOP MARQUEE PANEL ── */}
+        {/* ══════════════════════════════
+            MACHINE BODY
+        ══════════════════════════════ */}
         <div style={{
-          borderRadius: "16px 16px 0 0",
-          padding: "14px 20px 10px",
-          background: "linear-gradient(180deg, #c0392b 0%, #9b2722 60%, #7a1f1a 100%)",
-          boxShadow: "inset 0 -3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,180,160,0.2)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 8,
+          position: "relative",
+          borderRadius: "18px 18px 14px 14px",
+          overflow: "visible",
+          /* Aged painted steel — warm grey-beige */
+          background: [
+            "linear-gradient(175deg,",
+            "#d8d2c8 0%,",
+            "#c8c2b6 8%,",
+            "#b8b2a6 20%,",
+            "#a8a29a 35%,",
+            "#b2ac9e 55%,",
+            "#c4beb0 75%,",
+            "#cac4b6 100%)"
+          ].join(""),
+          boxShadow: [
+            "0 0 0 1.5px #888078",
+            "0 0 0 3px #5a5448",
+            "0 40px 100px rgba(0,0,0,0.95)",
+            "0 10px 30px rgba(0,0,0,0.7)",
+            "inset 0 2px 0 rgba(255,255,255,0.35)",
+            "inset 0 -3px 0 rgba(0,0,0,0.4)",
+          ].join(","),
         }}>
-          {/* Title plate */}
+
+          {/* ── MARQUEE TOP ── */}
           <div style={{
-            background: "linear-gradient(90deg, #f5e6c8, #fff8e8, #f0ddb0, #fff8e8, #f5e6c8)",
-            borderRadius: 3,
-            padding: "4px 24px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6)",
-            border: "1px solid #c8a000",
+            borderRadius: "18px 18px 0 0",
+            overflow: "hidden",
+            position: "relative",
           }}>
-            <span style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 15,
-              fontWeight: 700,
-              color: "#3a1000",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-            }}>
-              Literary Slots
-            </span>
-          </div>
-
-          {/* Decorative bulbs row */}
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            {[...Array(9)].map((_, i) => (
-              <div key={i} style={{
-                width: i === 4 ? 10 : 7,
-                height: i === 4 ? 10 : 7,
-                borderRadius: "50%",
-                background: spinning
-                  ? `radial-gradient(circle at 35% 30%, ${i % 3 === 0 ? "#ffe066" : i % 3 === 1 ? "#ff6b6b" : "#66ddff"}, rgba(0,0,0,0.3))`
-                  : done
-                  ? `radial-gradient(circle at 35% 30%, #ffd700, #8a6000)`
-                  : `radial-gradient(circle at 35% 30%, #ccc, #555)`,
-                boxShadow: (spinning || done) ? "0 0 6px rgba(255,220,0,0.8)" : "inset 0 1px 2px rgba(0,0,0,0.5)",
-                border: "1px solid rgba(0,0,0,0.3)",
-                transition: "all 0.2s",
-              }} />
-            ))}
-          </div>
-        </div>
-
-        {/* ── SIDE PANEL TEXTURE (chrome strips) ── */}
-        <div style={{ display: "flex", gap: 0, padding: "0 16px" }}>
-          {/* Left chrome strip */}
-          <div style={{
-            width: 14,
-            background: "linear-gradient(90deg, #888, #ccc, #aaa, #ddd, #999)",
-            boxShadow: "inset 2px 0 4px rgba(0,0,0,0.3)",
-          }} />
-
-          {/* ── CENTER CONTENT ── */}
-          <div style={{ flex: 1, padding: "16px 12px" }}>
-
-            {/* Reels window — chrome bezel */}
+            {/* Marquee background — deep red lacquer */}
             <div style={{
-              borderRadius: 8,
-              padding: 6,
-              background: "linear-gradient(145deg, #888480, #5a5652, #706c68, #3a3834)",
+              padding: "18px 28px 14px",
+              background: [
+                "linear-gradient(180deg,",
+                "#b02020 0%,",
+                "#8a1818 25%,",
+                "#701010 60%,",
+                "#580a0a 100%)"
+              ].join(""),
               boxShadow: [
-                "0 0 0 2px #2a2826",
-                "0 4px 12px rgba(0,0,0,0.7)",
-                "inset 0 2px 4px rgba(255,255,255,0.15)",
-              ].join(", "),
-              marginBottom: 14,
+                "inset 0 -4px 12px rgba(0,0,0,0.5)",
+                "inset 0 2px 0 rgba(255,100,80,0.15)",
+                "inset 4px 0 8px rgba(0,0,0,0.2)",
+                "inset -4px 0 8px rgba(0,0,0,0.2)",
+              ].join(","),
+              position: "relative",
             }}>
-              {/* Inner reel housing */}
+
+              {/* Chrome title plate */}
               <div style={{
-                borderRadius: 5,
-                padding: "8px 10px",
-                background: "#1a1408",
-                boxShadow: "inset 0 4px 20px rgba(0,0,0,0.95), inset 0 -2px 8px rgba(0,0,0,0.7)",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 8,
+                margin: "0 auto 12px",
+                width: "fit-content",
+                padding: "5px 28px",
+                background: [
+                  "linear-gradient(180deg,",
+                  "#f8f2e0 0%,",
+                  "#fff8e8 30%,",
+                  "#ede0b8 65%,",
+                  "#f8eecc 100%)"
+                ].join(""),
+                borderRadius: 3,
+                border: "1px solid rgba(200,160,0,0.7)",
+                boxShadow: [
+                  "0 2px 8px rgba(0,0,0,0.6)",
+                  "0 1px 0 rgba(255,255,255,0.8)",
+                  "inset 0 1px 0 rgba(255,255,255,0.9)",
+                  "inset 0 -1px 0 rgba(0,0,0,0.1)",
+                ].join(","),
               }}>
-                {([0, 1, 2] as const).map(i => (
-                  <Reel
+                <span style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#2a1200",
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  display: "block",
+                  textAlign: "center",
+                }}>
+                  LITERARY SLOTS
+                </span>
+              </div>
+
+              {/* Bulb row */}
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
+                {bulbCfg.map((b, i) => (
+                  <Bulb
                     key={i}
-                    books={books}
-                    targetIdx={targets[i]}
-                    spinning={spinning}
-                    delay={i * 380}
-                    onDone={handleReelDone}
+                    color={(spinning || done) ? b.c : off.c}
+                    glow={(spinning || done) ? b.g : off.g}
+                    animate={spinning}
                   />
                 ))}
               </div>
+
+              {/* Worn paint texture overlay */}
+              <div style={{
+                position: "absolute", inset: 0, borderRadius: "inherit",
+                backgroundImage: [
+                  "radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.04) 0%, transparent 40%)",
+                  "radial-gradient(ellipse at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 40%)",
+                ].join(","),
+                pointerEvents: "none",
+              }} />
             </div>
 
-            {/* ── BOTTOM CONTROL PANEL ── */}
+            {/* Chrome trim strip under marquee */}
             <div style={{
-              background: "linear-gradient(180deg, #7a7672 0%, #5a5652 50%, #6a6662 100%)",
-              borderRadius: 6,
-              padding: "10px 16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(255,255,255,0.1)",
-              gap: 12,
+              height: 8,
+              background: "linear-gradient(180deg, #e8e0d0 0%, #c0b8a8 40%, #d8d0c0 70%, #a8a098 100%)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.4)",
+            }} />
+          </div>
+
+          {/* ── BODY SIDE STRUCTURE ── */}
+          <div style={{ display: "flex", alignItems: "stretch" }}>
+
+            {/* Left chrome rail */}
+            <div style={{
+              width: 18, flexShrink: 0,
+              background: [
+                "linear-gradient(90deg,",
+                "#888078 0%,",
+                "#d0c8b8 20%,",
+                "#f0e8d8 40%,",
+                "#c8c0b0 60%,",
+                "#a09890 80%,",
+                "#888078 100%)"
+              ].join(""),
+              boxShadow: "inset -2px 0 6px rgba(0,0,0,0.3), inset 2px 0 4px rgba(255,255,255,0.1)",
             }}>
-              {/* Left: lights + display */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
-                <Lights spinning={spinning} done={done} />
-                <Display spinning={spinning} done={done} />
+              {/* Rail rivets */}
+              {[20, 60, 100, 140].map(top => (
+                <Screw key={top} style={{ top, left: "50%", transform: "translateX(-50%)", width: 9, height: 9 }} />
+              ))}
+            </div>
+
+            {/* CENTER */}
+            <div style={{ flex: 1, padding: "16px 14px" }}>
+
+              {/* ── REELS HOUSING ── */}
+              <div style={{
+                borderRadius: 8,
+                marginBottom: 14,
+                padding: 8,
+                position: "relative",
+                /* Chrome bezel */
+                background: [
+                  "linear-gradient(145deg,",
+                  "#c0b8a8 0%,",
+                  "#7a7268 20%,",
+                  "#5a5248 40%,",
+                  "#6a6258 65%,",
+                  "#9a9288 85%,",
+                  "#c0b8a8 100%)"
+                ].join(""),
+                boxShadow: [
+                  "0 0 0 1.5px #3a3228",
+                  "0 6px 20px rgba(0,0,0,0.8)",
+                  "inset 0 2px 4px rgba(255,255,255,0.2)",
+                  "inset 0 -2px 4px rgba(0,0,0,0.4)",
+                ].join(","),
+              }}>
+                {/* Corner screws on bezel */}
+                <Screw style={{ top: 4, left: 4 }} />
+                <Screw style={{ top: 4, right: 4 }} />
+                <Screw style={{ bottom: 4, left: 4 }} />
+                <Screw style={{ bottom: 4, right: 4 }} />
+
+                {/* Reel window — black housing */}
+                <div style={{
+                  borderRadius: 5,
+                  padding: "10px 12px",
+                  background: "#0e0c08",
+                  boxShadow: [
+                    "inset 0 6px 24px rgba(0,0,0,1)",
+                    "inset 0 -4px 12px rgba(0,0,0,0.9)",
+                    "inset 3px 0 10px rgba(0,0,0,0.7)",
+                    "inset -3px 0 10px rgba(0,0,0,0.7)",
+                  ].join(","),
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 10,
+                }}>
+                  {([0, 1, 2] as const).map(i => (
+                    <Reel
+                      key={i}
+                      books={books}
+                      targetIdx={targets[i]}
+                      spinning={spinning}
+                      delay={i * 400}
+                      onDone={handleReelDone}
+                    />
+                  ))}
+                </div>
+
+                {/* Payline indicator on right */}
+                <div style={{
+                  position: "absolute",
+                  right: -28,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                }}>
+                  <div style={{
+                    width: 20, height: 1.5,
+                    background: "rgba(255,210,60,0.6)",
+                    boxShadow: "0 0 4px rgba(255,210,60,0.4)",
+                  }} />
+                  <span style={{ fontFamily: "monospace", fontSize: 6, color: "#c8a000", letterSpacing: "0.05em", writingMode: "vertical-rl" }}>
+                    PAYLINE
+                  </span>
+                </div>
               </div>
 
-              {/* Center: big red button */}
-              <SpinButton onClick={onSpin} spinning={spinning} done={done} />
+              {/* ── CONTROL PANEL ── */}
+              <div style={{
+                borderRadius: 6,
+                padding: "12px 16px",
+                background: [
+                  "linear-gradient(180deg,",
+                  "#908880 0%,",
+                  "#706860 30%,",
+                  "#606058 60%,",
+                  "#706860 100%)"
+                ].join(""),
+                boxShadow: [
+                  "inset 0 2px 6px rgba(0,0,0,0.5)",
+                  "inset 0 -1px 0 rgba(255,255,255,0.08)",
+                  "inset 3px 0 6px rgba(0,0,0,0.2)",
+                  "inset -3px 0 6px rgba(0,0,0,0.2)",
+                ].join(","),
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+              }}>
 
-              {/* Right: coin slot + decorative buttons */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                <CoinSlot />
-                {/* Small utility buttons row */}
-                <div style={{ display: "flex", gap: 5 }}>
-                  {["BET", "MAX", "PAY"].map(label => (
-                    <div key={label} style={{
-                      padding: "3px 6px",
-                      background: "linear-gradient(180deg, #e8e0d0, #c8c0b0)",
-                      borderRadius: 3,
-                      boxShadow: "0 2px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6)",
-                      border: "1px solid #888",
-                      cursor: "default",
-                    }}>
-                      <span style={{
-                        fontFamily: "monospace",
-                        fontSize: 7,
-                        fontWeight: 700,
-                        color: "#3a3028",
-                        letterSpacing: "0.08em",
-                      }}>{label}</span>
-                    </div>
-                  ))}
+                {/* Left group: LCD + indicator lights */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                  <LCD spinning={spinning} done={done} />
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    {[
+                      spinning ? { c: "#ff3030", g: "0 0 10px rgba(255,50,50,0.9), 0 0 20px rgba(255,50,50,0.4)" } : done ? { c: "#ffd700", g: "0 0 10px rgba(255,215,0,0.9)" } : { c: "#221810", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
+                      spinning ? { c: "#ffaa00", g: "0 0 10px rgba(255,170,0,0.9)" } : done ? { c: "#ffd700", g: "0 0 8px rgba(255,215,0,0.8)" } : { c: "#201808", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
+                      spinning ? { c: "#ff3030", g: "0 0 10px rgba(255,50,50,0.9)" } : done ? { c: "#ffd700", g: "0 0 10px rgba(255,215,0,0.9)" } : { c: "#221810", g: "inset 0 2px 4px rgba(0,0,0,0.9)" },
+                    ].map((b, i) => (
+                      <div key={i} style={{
+                        width: 10, height: 10, borderRadius: "50%",
+                        background: `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.5) 0%, ${b.c} 50%, rgba(0,0,0,0.4) 100%)`,
+                        boxShadow: b.g,
+                        border: "1px solid rgba(0,0,0,0.5)",
+                        transition: "all 0.25s",
+                      }} />
+                    ))}
+                    <span style={{ fontFamily: "monospace", fontSize: 7, color: "#6a5a40", letterSpacing: "0.08em" }}>STATUS</span>
+                  </div>
+                </div>
+
+                {/* Center: big button */}
+                <BigButton onClick={onSpin} spinning={spinning} done={done} />
+
+                {/* Right group: coin slot + utility buttons */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end", flex: 1 }}>
+                  <CoinSlot />
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {["BET", "MAX", "PAY"].map(label => (
+                      <div key={label} style={{
+                        padding: "3px 7px",
+                        background: "linear-gradient(180deg, #e0d8c8 0%, #b8b0a0 50%, #c8c0b0 100%)",
+                        borderRadius: 3,
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.2)",
+                        border: "1px solid rgba(80,70,60,0.5)",
+                        cursor: "default",
+                      }}>
+                        <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, color: "#282018", letterSpacing: "0.1em" }}>
+                          {label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Right chrome rail */}
+            <div style={{
+              width: 18, flexShrink: 0,
+              background: [
+                "linear-gradient(90deg,",
+                "#888078 0%,",
+                "#a09890 20%,",
+                "#c8c0b0 40%,",
+                "#f0e8d8 60%,",
+                "#d0c8b8 80%,",
+                "#888078 100%)"
+              ].join(""),
+              boxShadow: "inset 2px 0 6px rgba(0,0,0,0.3), inset -2px 0 4px rgba(255,255,255,0.1)",
+            }}>
+              {[20, 60, 100, 140].map(top => (
+                <Screw key={top} style={{ top, left: "50%", transform: "translateX(-50%)", width: 9, height: 9 }} />
+              ))}
+            </div>
           </div>
 
-          {/* Right chrome strip */}
+          {/* ── BOTTOM BASE PLATE ── */}
           <div style={{
-            width: 14,
-            background: "linear-gradient(90deg, #999, #ddd, #aaa, #ccc, #888)",
-            boxShadow: "inset -2px 0 4px rgba(0,0,0,0.3)",
-          }} />
+            margin: "0 0",
+            height: 22,
+            borderRadius: "0 0 14px 14px",
+            background: "linear-gradient(180deg, #888078 0%, #605850 40%, #504840 100%)",
+            boxShadow: [
+              "inset 0 2px 4px rgba(0,0,0,0.5)",
+              "inset 0 1px 0 rgba(255,255,255,0.08)",
+            ].join(","),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+          }}>
+            {/* Bottom screws */}
+            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
+            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
+            <Screw style={{ position: "relative", top: "auto", left: "auto" }} />
+          </div>
+
+          {/* Corner screws on main body */}
+          <Screw style={{ top: 10, left: 10 }} />
+          <Screw style={{ top: 10, right: 10 }} />
+
+          {/* ── LEVER ── */}
+          <Lever onClick={onSpin} spinning={spinning} />
         </div>
 
-        {/* ── BOTTOM BASE ── */}
+        {/* Ground shadow */}
         <div style={{
-          margin: "0 16px",
-          height: 20,
-          background: "linear-gradient(180deg, #6a6662, #4a4642)",
-          borderRadius: "0 0 8px 8px",
-          boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.5)",
+          margin: "6px auto 0",
+          width: "80%",
+          height: 12,
+          background: "radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.6), transparent)",
+          borderRadius: "50%",
         }} />
-
-        {/* ── LEVER ── */}
-        <Lever onClick={onSpin} spinning={spinning} />
-
-        {/* Bolt corners */}
-        {[
-          { top: 6, left: 6 }, { top: 6, right: 6 },
-          { bottom: 22, left: 6 }, { bottom: 22, right: 6 },
-        ].map((pos, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            width: 10, height: 10,
-            borderRadius: "50%",
-            background: "radial-gradient(circle at 35% 30%, #e8e0d0, #888480)",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.3)",
-            border: "1px solid #666",
-            ...pos,
-            zIndex: 10,
-          }} />
-        ))}
       </div>
-    </div>
+    </>
   );
 }
