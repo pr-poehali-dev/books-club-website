@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import Icon from "@/components/ui/icon";
 import SectionTitle from "@/components/SectionTitle";
 import { pickFiltered, BOOKS, type Mood, type Era, type Volume, type Genre, type Book } from "@/data/randomizerConstants";
 import SlotMachine from "@/components/roulette/SlotMachine";
@@ -75,29 +74,11 @@ export default function BookRandomizer() {
               books={slotBooks}
               targets={targets}
               spinning={spinning}
+              onSpin={handleSpin}
               onDone={handleDone}
             />
 
-            <button
-              onClick={handleSpin}
-              disabled={spinning}
-              className={`px-14 py-4 rounded-2xl font-body font-semibold text-sm tracking-wide transition-all duration-200 min-w-[220px]
-                ${spinning
-                  ? "bg-white/5 text-muted-foreground cursor-not-allowed"
-                  : "bg-gold text-ink hover:bg-gold/90 hover:shadow-xl hover:shadow-gold/30 hover:-translate-y-0.5 active:scale-95"}`}
-              style={!spinning ? { boxShadow: "0 0 20px rgba(218,165,32,0.4), 0 4px 16px rgba(0,0,0,0.5)" } : {}}>
-              {spinning ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-muted-foreground border-t-parchment rounded-full animate-spin inline-block" />
-                  Крутится…
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <Icon name="Shuffle" size={15} />
-                  {showResult ? "Крутить ещё" : "Крутить автомат"}
-                </span>
-              )}
-            </button>
+
           </div>
 
           {/* Result panel */}
