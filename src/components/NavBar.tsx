@@ -21,36 +21,33 @@ interface NavBarProps {
 
 export default function NavBar({ activeSection, mobileOpen, onNav, onToggleMobile }: NavBarProps) {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20">
+      <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
         <button
           onClick={() => onNav("home")}
-          className="font-display text-xl text-gold tracking-wide hover:opacity-80 transition-opacity"
+          className="font-display text-xl text-gold font-semibold hover:opacity-80 transition-opacity"
         >
           Литературный клуб
         </button>
 
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => onNav(item.id)}
-              className={`text-sm tracking-wider font-body transition-colors relative pb-0.5
+              className={`text-sm font-body px-3 py-2 rounded-lg transition-all duration-150
                 ${activeSection === item.id
-                  ? "text-gold"
-                  : "text-muted-foreground hover:text-parchment"
+                  ? "text-gold bg-gold/10"
+                  : "text-muted-foreground hover:text-parchment hover:bg-white/5"
                 }`}
             >
               {item.label}
-              {activeSection === item.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-px bg-gold" />
-              )}
             </button>
           ))}
         </div>
 
         <button
-          className="lg:hidden text-gold-dim hover:text-gold transition-colors"
+          className="lg:hidden text-gold-dim hover:text-gold transition-colors p-2 rounded-lg hover:bg-white/5"
           onClick={onToggleMobile}
         >
           <Icon name={mobileOpen ? "X" : "Menu"} size={22} />
@@ -58,13 +55,13 @@ export default function NavBar({ activeSection, mobileOpen, onNav, onToggleMobil
       </div>
 
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-card py-4 px-6 flex flex-col gap-3">
+        <div className="lg:hidden border-t border-white/5 bg-card/95 backdrop-blur-xl py-3 px-4 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => onNav(item.id)}
-              className={`text-left text-base font-body py-1.5 transition-colors
-                ${activeSection === item.id ? "text-gold" : "text-muted-foreground hover:text-parchment"}`}
+              className={`text-left text-sm font-body px-3 py-2.5 rounded-lg transition-all
+                ${activeSection === item.id ? "text-gold bg-gold/10" : "text-muted-foreground hover:text-parchment hover:bg-white/5"}`}
             >
               {item.label}
             </button>

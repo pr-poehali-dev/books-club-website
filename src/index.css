@@ -32,7 +32,7 @@
     --input: 30 10% 18%;
     --ring: 43 74% 66%;
 
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     --gold: 43 74% 66%;
     --gold-dim: 43 40% 45%;
@@ -49,24 +49,24 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "EB Garamond", "Cormorant Garamond", serif;
+    font-family: "Inter", sans-serif;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Playfair Display", serif;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Playfair Display", serif;
   }
 
   .font-body {
-    font-family: "EB Garamond", serif;
+    font-family: "Inter", sans-serif;
   }
 
   .text-gold {

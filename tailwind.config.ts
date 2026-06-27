@@ -20,9 +20,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				display: ['Cormorant Garamond', 'serif'],
-				body: ['EB Garamond', 'serif'],
-				serif: ['Cormorant Garamond', 'serif'],
+				display: ['Playfair Display', 'serif'],
+				body: ['Inter', 'sans-serif'],
+				serif: ['Playfair Display', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -65,8 +65,8 @@ export default {
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				md: 'calc(var(--radius) - 4px)',
+				sm: 'calc(var(--radius) - 8px)'
 			},
 			keyframes: {
 				'accordion-down': {

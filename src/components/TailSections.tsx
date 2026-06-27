@@ -59,18 +59,18 @@ export default function TailSections() {
   return (
     <>
       {/* REVIEWS */}
-      <section id="reviews" className="py-24 bg-card border-y border-border">
+      <section id="reviews" className="py-24" style={{ background: "hsl(var(--card))" }}>
         <div className="px-6 max-w-6xl mx-auto">
           <SectionTitle sub="Участники о книгах">Рецензии</SectionTitle>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5">
             {REVIEWS.map((r, i) => (
               <div
                 key={i}
-                className="border border-border bg-background p-6 hover:border-gold-dim transition-all group"
+                className="bg-background rounded-2xl p-6 hover:shadow-xl hover:shadow-black/30 hover:-translate-y-1 transition-all duration-200 group border border-white/5"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors">{r.title}</h4>
+                    <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors font-semibold">{r.title}</h4>
                     <p className="text-gold-dim text-sm font-body italic">{r.author}</p>
                   </div>
                   <StarRating rating={r.rating} />
@@ -78,15 +78,15 @@ export default function TailSections() {
                 <p className="text-muted-foreground font-body text-sm leading-relaxed mb-5 italic">
                   «{r.text}»
                 </p>
-                <div className="flex items-center justify-between text-xs text-gold-dim font-body">
-                  <span>{r.reviewer}</span>
+                <div className="flex items-center justify-between text-xs text-muted-foreground font-body pt-4 border-t border-white/5">
+                  <span className="text-gold-dim">{r.reviewer}</span>
                   <span>{r.date}</span>
                 </div>
               </div>
             ))}
           </div>
           <div className="text-center mt-10">
-            <button className="border border-gold-dim text-gold-dim px-8 py-3 text-sm tracking-widest uppercase font-body hover:border-gold hover:text-gold transition-all">
+            <button className="px-8 py-3 rounded-xl border border-gold-dim/50 text-gold-dim text-sm font-body font-medium hover:border-gold hover:text-gold hover:bg-gold/5 transition-all">
               Написать рецензию
             </button>
           </div>
@@ -96,20 +96,20 @@ export default function TailSections() {
       {/* LIBRARY */}
       <section id="library" className="py-24 px-6 max-w-6xl mx-auto">
         <SectionTitle sub="Наш фонд">Библиотека</SectionTitle>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {LIBRARY.map((book, i) => (
             <div
               key={i}
-              className="border border-border bg-card px-5 py-4 hover:border-gold-dim transition-all group cursor-pointer flex items-center gap-4"
+              className="bg-card rounded-2xl px-5 py-4 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-150 group cursor-pointer flex items-center gap-4 border border-white/5"
             >
-              <div className="text-gold-dim text-2xl opacity-50 group-hover:opacity-100 transition-opacity font-display shrink-0">
-                {String(i + 1).padStart(2, "0")}
+              <div className="w-9 h-9 rounded-xl bg-gold/10 flex items-center justify-center shrink-0 group-hover:bg-gold/20 transition-colors">
+                <span className="text-gold font-display text-sm font-semibold">{String(i + 1).padStart(2, "0")}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-display text-base text-parchment group-hover:text-gold transition-colors truncate">
+                <p className="font-display text-base font-semibold text-parchment group-hover:text-gold transition-colors truncate">
                   {book.title}
                 </p>
-                <p className="text-muted-foreground text-xs font-body italic">{book.author}</p>
+                <p className="text-muted-foreground text-xs font-body">{book.author}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-gold-dim text-xs font-body">{book.year}</p>
@@ -119,30 +119,30 @@ export default function TailSections() {
           ))}
         </div>
         <div className="text-center mt-8">
-          <button className="border border-gold-dim text-gold-dim px-8 py-3 text-sm tracking-widest uppercase font-body hover:border-gold hover:text-gold transition-all">
+          <button className="px-8 py-3 rounded-xl border border-gold-dim/50 text-gold-dim text-sm font-body font-medium hover:border-gold hover:text-gold hover:bg-gold/5 transition-all">
             Вся библиотека
           </button>
         </div>
       </section>
 
       {/* COMMUNITY */}
-      <section id="community" className="py-24 bg-card border-y border-border">
+      <section id="community" className="py-24" style={{ background: "hsl(var(--card))" }}>
         <div className="px-6 max-w-6xl mx-auto">
           <SectionTitle sub="Присоединяйтесь">Сообщество</SectionTitle>
-          <p className="text-center text-muted-foreground font-body text-lg mb-12 max-w-2xl mx-auto italic">
+          <p className="text-center text-muted-foreground font-body text-lg mb-12 max-w-2xl mx-auto">
             Мы в Telegram — живое сообщество читателей, где каждый день обсуждаем книги, делимся мыслями и договариваемся о встречах.
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {COMMUNITY_LINKS.map((link, i) => (
               <a
                 key={i}
                 href={link.href}
-                className="border border-border bg-background p-6 hover:border-gold-dim transition-all group text-center block"
+                className="bg-background rounded-2xl p-6 hover:shadow-xl hover:shadow-black/30 hover:-translate-y-1 transition-all duration-200 group text-center block border border-white/5"
               >
-                <div className="w-12 h-12 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:border-gold transition-colors">
-                  <Icon name={link.icon} size={20} className="text-gold-dim group-hover:text-gold transition-colors" fallback="Link" />
+                <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-gold/20 transition-colors">
+                  <Icon name={link.icon} size={20} className="text-gold group-hover:text-gold transition-colors" fallback="Link" />
                 </div>
-                <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors mb-2">
+                <h4 className="font-display text-lg font-semibold text-parchment group-hover:text-gold transition-colors mb-1.5">
                   {link.label}
                 </h4>
                 <p className="text-muted-foreground text-sm font-body">{link.desc}</p>
@@ -152,7 +152,7 @@ export default function TailSections() {
           <div className="text-center mt-12">
             <a
               href="#"
-              className="inline-flex items-center gap-3 px-10 py-4 bg-gold text-ink font-body tracking-widest text-sm uppercase hover:bg-gold/90 transition-all"
+              className="inline-flex items-center gap-3 px-10 py-4 bg-gold text-ink font-body font-medium text-sm rounded-2xl hover:bg-gold/90 hover:shadow-xl hover:shadow-gold/25 hover:-translate-y-0.5 transition-all"
             >
               <Icon name="Send" size={16} />
               Перейти в Telegram
@@ -162,13 +162,13 @@ export default function TailSections() {
       </section>
 
       {/* FOOTER */}
-      <footer className="py-12 px-6 text-center border-t border-border">
-        <p className="font-display text-2xl text-gold mb-2">Литературный клуб</p>
+      <footer className="py-12 px-6 text-center">
+        <p className="font-display text-2xl font-semibold text-gold mb-2">Литературный клуб</p>
         <p className="text-muted-foreground text-sm font-body italic mb-6">
           «Книги — это зеркала: в них можно увидеть лишь то, что уже знаешь»
         </p>
         <Divider />
-        <p className="text-muted-foreground text-xs font-body mt-4 tracking-wider">
+        <p className="text-muted-foreground text-xs font-body mt-4">
           © 2026 Литературный клуб
         </p>
       </footer>

@@ -122,24 +122,24 @@ export default function MainSections() {
       {/* EVENTS */}
       <section id="events" className="py-24 px-6 max-w-6xl mx-auto">
         <SectionTitle sub="Расписание">Ближайшие события</SectionTitle>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-5">
           {EVENTS.map((ev, i) => (
             <div
               key={i}
-              className="border border-border bg-card p-6 hover:border-gold-dim transition-all group cursor-pointer"
+              className="bg-card rounded-2xl p-6 hover:shadow-xl hover:shadow-black/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer border border-white/5"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <div className="text-gold font-display text-3xl font-light">{ev.date}</div>
-                  <div className="text-gold-dim text-xs tracking-widest uppercase">{ev.weekday}</div>
+                  <div className="text-gold font-display text-3xl font-semibold">{ev.date}</div>
+                  <div className="text-gold-dim text-xs tracking-wider uppercase font-body mt-0.5">{ev.weekday}</div>
                 </div>
-                <span className="text-gold-dim opacity-40 group-hover:opacity-100 transition-opacity">✦</span>
+                <span className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold text-xs group-hover:bg-gold/20 transition-colors">✦</span>
               </div>
               <h3 className="font-display text-xl text-parchment mb-2 group-hover:text-gold transition-colors">
                 {ev.title}
               </h3>
               <p className="text-muted-foreground text-sm font-body mb-4 leading-relaxed">{ev.desc}</p>
-              <div className="flex items-center gap-2 text-gold-dim text-xs">
+              <div className="flex items-center gap-2 text-gold-dim text-xs font-body">
                 <Icon name="MapPin" size={12} />
                 <span>{ev.place}</span>
               </div>
@@ -149,22 +149,24 @@ export default function MainSections() {
       </section>
 
       {/* BOOK OF MONTH */}
-      <section id="book-of-month" className="py-24 bg-card border-y border-border">
+      <section id="book-of-month" className="py-24" style={{ background: "hsl(var(--card))" }}>
         <div className="px-6 max-w-6xl mx-auto">
           <SectionTitle sub="Май 2026">Книга месяца</SectionTitle>
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-10 items-start">
             <div className="text-center md:text-left">
-              <div className="inline-block border border-gold-dim p-1 mb-8">
-                <div className="bg-leather p-12 text-center w-48 mx-auto md:mx-0">
-                  <div className="font-display text-gold text-sm tracking-widest uppercase mb-4">Книга</div>
-                  <div className="font-display text-parchment text-2xl leading-tight">Повелитель<br/>мух</div>
-                  <div className="mt-4 text-gold-dim text-xs font-body italic">У. Голдинг</div>
+              <div className="inline-block mb-8">
+                <div className="bg-leather rounded-2xl p-10 text-center w-48 mx-auto md:mx-0 shadow-2xl shadow-black/50">
+                  <div className="font-display text-gold text-xs tracking-widest uppercase mb-3 font-semibold">Книга</div>
+                  <div className="font-display text-parchment text-2xl leading-tight font-semibold">Повелитель<br/>мух</div>
+                  <div className="mt-3 text-gold-dim text-xs font-body italic">У. Голдинг</div>
                 </div>
               </div>
 
-              <div className="border border-border bg-background p-6 text-left">
-                <p className="text-gold-dim text-xs tracking-widest uppercase font-body mb-4">Об авторе</p>
-                <h4 className="font-display text-xl text-parchment mb-4">Уильям Голдинг</h4>
+              <div className="bg-background rounded-2xl p-6 text-left border border-white/5">
+                <p className="text-gold text-xs tracking-wider uppercase font-body font-medium mb-4 flex items-center gap-2">
+                  <span className="w-4 h-px bg-gold inline-block" />Об авторе
+                </p>
+                <h4 className="font-display text-xl text-parchment mb-4 font-semibold">Уильям Голдинг</h4>
                 <div className="space-y-3">
                   {AUTHOR_FACTS.map((item, i) => (
                     <div key={i} className="flex gap-3 items-start">
@@ -177,26 +179,26 @@ export default function MainSections() {
             </div>
 
             <div>
-              <h3 className="font-display text-4xl text-parchment mb-2">Повелитель мух</h3>
+              <h3 className="font-display text-4xl text-parchment mb-2 font-semibold">Повелитель мух</h3>
               <p className="text-gold-dim font-body italic mb-6">Уильям Голдинг, 1954</p>
               <p className="text-muted-foreground font-body text-lg leading-relaxed mb-5">
                 Группа мальчиков оказывается на необитаемом острове после авиакатастрофы. Без взрослых. Они пытаются построить общество — и терпят крах. Голдинг задаёт вопрос, который не имеет удобного ответа: что происходит с человеком, когда исчезают правила?
               </p>
-              <p className="text-muted-foreground font-body text-base leading-relaxed mb-8 italic border-l-2 border-gold-dim pl-4">
+              <p className="text-muted-foreground font-body text-base leading-relaxed mb-8 italic border-l-2 border-gold-dim/50 pl-4 rounded-sm">
                 «Роман написан как ответ на «Коралловый остров» Баллантайна, где дети-колонизаторы всё делали правильно. Голдинг, переживший войну, в это не верил.»
               </p>
-              <div className="flex flex-wrap gap-3 mb-8">
+              <div className="flex flex-wrap gap-2 mb-8">
                 {["Британская классика", "Антиутопия", "Психология", "XX век"].map((tag) => (
-                  <span key={tag} className="border border-gold-dim text-gold-dim text-xs px-3 py-1 font-body tracking-wider">
+                  <span key={tag} className="bg-gold/10 text-gold text-xs px-3 py-1.5 rounded-full font-body font-medium">
                     {tag}
                   </span>
                 ))}
               </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="px-8 py-3 bg-gold text-ink font-body tracking-widest text-sm uppercase hover:bg-gold/90 transition-all">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button className="px-7 py-3 bg-gold text-ink font-body font-medium text-sm rounded-xl hover:bg-gold/90 hover:shadow-lg hover:shadow-gold/20 hover:-translate-y-0.5 transition-all">
                   Присоединиться к чтению
                 </button>
-                <button className="px-8 py-3 border border-gold-dim text-gold-dim font-body tracking-widest text-sm uppercase hover:border-gold hover:text-gold transition-all">
+                <button className="px-7 py-3 rounded-xl border border-gold-dim/50 text-gold-dim font-body font-medium text-sm hover:border-gold hover:text-gold hover:bg-gold/5 transition-all">
                   Обсудить в клубе
                 </button>
               </div>
@@ -215,22 +217,22 @@ export default function MainSections() {
               href={a.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-border bg-card p-6 hover:border-gold-dim transition-all group flex flex-col cursor-pointer"
+              className="bg-card rounded-2xl p-6 hover:shadow-xl hover:shadow-black/30 hover:-translate-y-1 transition-all duration-200 group flex flex-col cursor-pointer border border-white/5"
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-gold-dim text-xs tracking-widest uppercase font-body border border-gold-dim px-2 py-0.5">
+                <span className="bg-gold/10 text-gold text-xs px-2.5 py-1 rounded-full font-body font-medium">
                   {a.tag}
                 </span>
                 <span className="text-2xl">{a.emoji}</span>
               </div>
-              <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors mb-3 leading-snug flex-1">
+              <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors mb-3 leading-snug flex-1 font-semibold">
                 {a.title}
               </h4>
               <p className="text-muted-foreground text-sm font-body leading-relaxed mb-5 italic">
                 {a.excerpt}
               </p>
-              <div className="flex items-center justify-between text-xs text-gold-dim font-body mt-auto pt-4 border-t border-border">
-                <span>{a.source}</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground font-body mt-auto pt-4 border-t border-white/5">
+                <span className="text-gold-dim">{a.source}</span>
                 <div className="flex items-center gap-1">
                   <Icon name="Clock" size={11} />
                   <span>{a.readTime}</span>
@@ -248,15 +250,15 @@ export default function MainSections() {
           {DISCUSSIONS.map((d, i) => (
             <div
               key={i}
-              className="border border-border bg-card px-6 py-5 hover:border-gold-dim transition-all group cursor-pointer flex items-center justify-between gap-4"
+              className="bg-card rounded-2xl px-6 py-5 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-150 group cursor-pointer flex items-center justify-between gap-4 border border-white/5"
             >
               <div className="flex-1 min-w-0">
-                <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors mb-1 truncate">
+                <h4 className="font-display text-lg text-parchment group-hover:text-gold transition-colors mb-1 truncate font-semibold">
                   {d.topic}
                 </h4>
-                <p className="text-gold-dim text-xs font-body italic">{d.book}</p>
+                <p className="text-gold-dim text-xs font-body">{d.book}</p>
               </div>
-              <div className="flex items-center gap-6 shrink-0 text-muted-foreground text-sm font-body">
+              <div className="flex items-center gap-5 shrink-0 text-muted-foreground text-sm font-body">
                 <div className="flex items-center gap-1.5">
                   <Icon name="MessageSquare" size={14} />
                   <span>{d.replies}</span>
@@ -265,13 +267,15 @@ export default function MainSections() {
                   <Icon name="Clock" size={12} />
                   <span>{d.active}</span>
                 </div>
-                <Icon name="ChevronRight" size={16} className="text-gold-dim group-hover:text-gold transition-colors" />
+                <div className="w-7 h-7 rounded-full bg-white/5 group-hover:bg-gold/10 flex items-center justify-center transition-colors">
+                  <Icon name="ChevronRight" size={14} className="text-muted-foreground group-hover:text-gold transition-colors" />
+                </div>
               </div>
             </div>
           ))}
         </div>
         <div className="text-center mt-8">
-          <button className="border border-gold-dim text-gold-dim px-8 py-3 text-sm tracking-widest uppercase font-body hover:border-gold hover:text-gold transition-all">
+          <button className="px-8 py-3 rounded-xl border border-gold-dim/50 text-gold-dim text-sm font-body font-medium hover:border-gold hover:text-gold hover:bg-gold/5 transition-all">
             Начать новое обсуждение
           </button>
         </div>

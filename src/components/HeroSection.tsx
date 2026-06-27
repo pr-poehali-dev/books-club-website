@@ -16,10 +16,10 @@ export default function HeroSection({ onScrollTo }: HeroSectionProps) {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-        <p className="text-gold-dim text-xs tracking-[0.5em] uppercase mb-6 animate-fade-in-up font-body">
+        <span className="inline-block text-gold text-xs font-body font-medium tracking-[0.2em] uppercase mb-6 px-4 py-1.5 rounded-full bg-gold/10 animate-fade-in-up">
           Клуб любителей классической литературы
-        </p>
-        <h1 className="font-display text-6xl md:text-8xl lg:text-9xl text-parchment font-light leading-none mb-6 animate-fade-in-up delay-200">
+        </span>
+        <h1 className="font-display text-6xl md:text-8xl lg:text-9xl text-parchment font-semibold leading-[0.95] mb-6 animate-fade-in-up delay-200">
           Литературный<br />
           <em className="text-gold italic">клуб</em>
         </h1>
@@ -28,16 +28,16 @@ export default function HeroSection({ onScrollTo }: HeroSectionProps) {
           «Читать — значит думать чужой головой вместо собственной»<br />
           <span className="text-gold-dim text-sm not-italic">— Артур Шопенгауэр</span>
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-500">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up delay-500">
           <button
             onClick={() => onScrollTo("events")}
-            className="px-8 py-3 bg-gold text-ink font-body tracking-widest text-sm uppercase hover:bg-gold/90 transition-all hover:shadow-lg hover:shadow-gold/20"
+            className="px-8 py-3.5 bg-gold text-ink font-body font-medium text-sm rounded-xl hover:bg-gold/90 transition-all hover:shadow-xl hover:shadow-gold/25 hover:-translate-y-0.5"
           >
             Ближайшие события
           </button>
           <button
             onClick={() => onScrollTo("community")}
-            className="px-8 py-3 border border-gold-dim text-gold-dim font-body tracking-widest text-sm uppercase hover:border-gold hover:text-gold transition-all"
+            className="px-8 py-3.5 rounded-xl border border-gold-dim/50 text-gold-dim font-body font-medium text-sm hover:border-gold hover:text-gold hover:bg-gold/5 transition-all"
           >
             Вступить в клуб
           </button>
