@@ -3,9 +3,8 @@ import SectionTitle from "@/components/SectionTitle";
 import Divider from "@/components/Divider";
 
 const COMMUNITY_LINKS = [
-  { label: "Основной чат", icon: "MessageCircle", desc: "Ежедневные обсуждения книг", href: "#" },
-  { label: "Канал анонсов", icon: "Bell", desc: "События и новости клуба", href: "#" },
-
+  { label: "Основной чат", icon: "MessageCircle", desc: "Ежедневные обсуждения", href: "https://t.me/titlebookclubpervie/1" },
+  { label: "Канал анонсов", icon: "Bell", desc: "События и новости клуба", href: "https://t.me/titleclubpervie" },
 ];
 
 
@@ -19,7 +18,7 @@ export default function TailSections() {
           <p className="text-center text-muted-foreground font-body text-lg mb-12 max-w-2xl mx-auto">
             Мы в Telegram — живое сообщество читателей, где каждый день обсуждаем книги, делимся мыслями и договариваемся о встречах.
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex flex-wrap justify-center gap-4 max-w-xl mx-auto">
             {COMMUNITY_LINKS.map((link, i) => (
               <a
                 key={i}
