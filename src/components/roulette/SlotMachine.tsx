@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Book } from "@/data/randomizerConstants";
 import { STYLES, GOLD_H, GOLD_V, Rivet, Bulb, LedDisplay } from "@/components/roulette/SlotMachineAtoms";
 import Reel from "@/components/roulette/SlotMachineReel";
-import { Lever, SpinButton } from "@/components/roulette/SlotMachineControls";
+import { SpinButton } from "@/components/roulette/SlotMachineControls";
 
 export interface SlotMachineProps {
   books: Book[];
@@ -42,7 +42,7 @@ export default function SlotMachine({ books, targets, spinning, onSpin, onDone }
       <style>{STYLES}</style>
 
       {/* Outer wrapper — extra space right for lever */}
-      <div style={{ position: "relative", width: "100%", maxWidth: 520, margin: "0 auto", paddingRight: 60 }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: 520, margin: "0 auto" }}>
 
         {/* ════════════════════════════════════
             MAIN GOLD BODY
@@ -411,8 +411,6 @@ export default function SlotMachine({ books, targets, spinning, onSpin, onDone }
           <Rivet style={{ top: 12, left: 12 }} />
           <Rivet style={{ top: 12, right: 12 }} />
 
-          {/* ── LEVER ── */}
-          <Lever onClick={onSpin} spinning={spinning} />
         </div>
 
         {/* Ground shadow */}
