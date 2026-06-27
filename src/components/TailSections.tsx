@@ -5,8 +5,7 @@ import Divider from "@/components/Divider";
 const COMMUNITY_LINKS = [
   { label: "Основной чат", icon: "MessageCircle", desc: "Ежедневные обсуждения книг", href: "#" },
   { label: "Канал анонсов", icon: "Bell", desc: "События и новости клуба", href: "#" },
-  { label: "Чат событий", icon: "Calendar", desc: "Обсуждение предстоящих встреч", href: "#" },
-  { label: "Книжные советы", icon: "BookOpen", desc: "Рекомендации участников", href: "#" },
+
 ];
 
 
@@ -37,15 +36,7 @@ export default function TailSections() {
               </a>
             ))}
           </div>
-          <div className="text-center mt-12">
-            <a
-              href="#"
-              className="inline-flex items-center gap-3 px-10 py-4 bg-gold text-ink font-body font-medium text-sm rounded-2xl hover:bg-gold/90 hover:shadow-xl hover:shadow-gold/25 hover:-translate-y-0.5 transition-all"
-            >
-              <Icon name="Send" size={16} />
-              Перейти в Telegram
-            </a>
-          </div>
+
         </div>
       </section>
 
