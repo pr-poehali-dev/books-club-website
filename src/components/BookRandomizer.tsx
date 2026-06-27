@@ -313,10 +313,10 @@ function RouletteWheel({ segments, spinning, targetIdx, onDone }: WheelProps) {
 function Chip({ label, emoji, selected, onClick }: { label:string; emoji:string; selected:boolean; onClick:()=>void }) {
   return (
     <button onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 border text-xs font-body tracking-wide transition-all duration-150
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body font-medium transition-all duration-150
         ${selected
-          ? "border-gold bg-gold/15 text-gold shadow-sm shadow-gold/20"
-          : "border-border text-muted-foreground hover:border-gold-dim hover:text-parchment"}`}>
+          ? "bg-gold/20 text-gold shadow-sm shadow-gold/20"
+          : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-parchment"}`}>
       <span>{emoji}</span>{label}
     </button>
   );
@@ -367,28 +367,27 @@ export default function BookRandomizer() {
   }, []);
 
   return (
-    <section id="randomizer" className="py-20 border-y border-border overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at 50% 0%, #1a1200 0%, #0a0800 50%, hsl(var(--background)) 100%)" }}>
+    <section id="randomizer" className="py-20 overflow-hidden" style={{ background: "hsl(var(--card))" }}>
       <div className="px-6 max-w-6xl mx-auto">
         <SectionTitle sub="Что почитать?">Книжная рулетка</SectionTitle>
 
         {/* Filters */}
         <div className="flex flex-wrap justify-center items-center gap-2 mb-12">
-          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Настроение:</span>
+          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Настроение:</span>
           {MOOD_OPTIONS.map(m => (
             <Chip key={String(m.id)} label={m.label} emoji={m.emoji}
               selected={mood === m.id}
               onClick={() => setMood(mood === m.id ? null : m.id)} />
           ))}
-          <div className="w-px h-5 bg-border mx-1" />
-          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Эпоха:</span>
+          <div className="w-px h-4 bg-white/10 mx-1" />
+          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Эпоха:</span>
           {ERA_OPTIONS.map(e => (
             <Chip key={String(e.id)} label={e.label} emoji={e.emoji}
               selected={era === e.id}
               onClick={() => setEra(era === e.id ? null : e.id)} />
           ))}
-          <div className="w-px h-5 bg-border mx-1" />
-          <span className="text-gold-dim text-xs tracking-widest uppercase font-body mr-1">Объём:</span>
+          <div className="w-px h-4 bg-white/10 mx-1" />
+          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Объём:</span>
           {VOLUME_OPTIONS.map(v => (
             <Chip key={String(v.id)} label={v.label} emoji={v.emoji}
               selected={volume === v.id}
@@ -396,7 +395,7 @@ export default function BookRandomizer() {
           ))}
           {(mood || era || volume) && (
             <button onClick={() => { setMood(null); setEra(null); setVolume(null); }}
-              className="text-muted-foreground text-xs font-body hover:text-parchment flex items-center gap-1 ml-2 transition-colors">
+              className="text-muted-foreground text-xs font-body hover:text-parchment flex items-center gap-1 ml-1 px-2 py-1.5 rounded-full hover:bg-white/5 transition-all">
               <Icon name="X" size={12} /> Сбросить
             </button>
           )}
@@ -405,7 +404,7 @@ export default function BookRandomizer() {
         {/* Wheel + Result */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-14 lg:gap-20">
 
-          <div className="flex flex-col items-center gap-10">
+          <div className="flex flex-col items-center gap-8">
             <RouletteWheel
               segments={segments}
               spinning={spinning}
@@ -413,21 +412,18 @@ export default function BookRandomizer() {
               onDone={handleDone}
             />
             <button onClick={handleSpin} disabled={spinning}
-              className={`px-14 py-4 font-body tracking-[0.35em] text-sm uppercase transition-all duration-200 min-w-[220px]
+              className={`px-12 py-3.5 rounded-2xl font-body font-medium text-sm transition-all duration-200 min-w-[220px]
                 ${spinning
-                  ? "bg-transparent border border-gold-dim text-gold-dim cursor-not-allowed"
-                  : "bg-gold text-ink hover:brightness-110 active:scale-95"}`}
-              style={!spinning ? {
-                boxShadow: "0 0 24px rgba(218,165,32,0.5), 0 4px 20px rgba(0,0,0,0.6)",
-              } : {}}>
+                  ? "bg-white/5 text-muted-foreground cursor-not-allowed"
+                  : "bg-gold text-ink hover:bg-gold/90 hover:shadow-xl hover:shadow-gold/25 hover:-translate-y-0.5 active:scale-95"}`}>
               {spinning ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-gold-dim border-t-gold rounded-full animate-spin inline-block" />
+                  <span className="w-3.5 h-3.5 border-2 border-muted-foreground border-t-parchment rounded-full animate-spin inline-block" />
                   Вращается…
                 </span>
               ) : (
-                <span className="flex items-center justify-center gap-3">
-                  <Icon name="Shuffle" size={16} />
+                <span className="flex items-center justify-center gap-2">
+                  <Icon name="Shuffle" size={15} />
                   {showResult ? "Крутить ещё" : "Крутить колесо"}
                 </span>
               )}
@@ -437,53 +433,52 @@ export default function BookRandomizer() {
           {/* Result panel */}
           <div className="flex-1 w-full lg:max-w-md">
             {!showResult && (
-              <div className="flex flex-col items-center justify-center gap-5 py-20 opacity-50">
-                <div className="text-gold text-5xl animate-pulse">✦</div>
-                <p className="text-gold-dim font-display text-xl italic">Нажмите — колесо выберет</p>
+              <div className="flex flex-col items-center justify-center gap-4 py-20 opacity-40">
+                <div className="text-gold text-5xl animate-pulse">◈</div>
+                <p className="text-muted-foreground font-body text-base">Нажмите — колесо выберет</p>
               </div>
             )}
 
             {showResult && result && (
-              <div className={`border border-gold-dim p-7 animate-result-rise
-                ${winGlow ? "animate-winner-glow" : ""}`}
-                style={{ background: "linear-gradient(135deg, #1a1200, #0d0900)" }}>
+              <div className={`bg-background rounded-2xl p-7 border border-white/5 animate-result-rise
+                ${winGlow ? "animate-winner-glow" : ""}`}>
 
                 {result.isFallback && (
-                  <div className="inline-flex items-center gap-2 text-gold-dim text-xs tracking-widest uppercase font-body mb-5 border border-gold-dim/30 bg-gold/5 px-3 py-1.5">
+                  <span className="inline-flex items-center gap-1.5 text-gold text-xs font-body font-medium mb-5 px-3 py-1.5 rounded-full bg-gold/10">
                     <Icon name="Sparkles" size={12} />А вдруг понравится?
-                  </div>
+                  </span>
                 )}
 
                 <div className="flex gap-5 items-start mb-5">
-                  <div className="shrink-0 w-[76px] h-28 flex flex-col items-center justify-center text-center p-2 border border-gold-dim/60"
-                    style={{ background: "linear-gradient(145deg, #2a1800, #110c00)", boxShadow: "4px 4px 16px rgba(0,0,0,0.7)" }}>
+                  <div className="shrink-0 w-[72px] h-[104px] rounded-xl flex flex-col items-center justify-center text-center p-2 shadow-lg shadow-black/40"
+                    style={{ background: "linear-gradient(145deg, #2a1800, #110c00)" }}>
                     <div className="text-2xl mb-1.5">{result.book.emoji}</div>
                     <div className="font-display text-parchment text-[9px] leading-snug">{result.book.title}</div>
-                    <div className="text-gold-dim text-[7px] mt-1 font-body italic truncate w-full text-center">{result.book.author}</div>
+                    <div className="text-gold-dim text-[7px] mt-1 font-body truncate w-full text-center">{result.book.author}</div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-display text-2xl md:text-3xl text-parchment leading-tight mb-1">{result.book.title}</h3>
+                    <h3 className="font-display text-2xl text-parchment font-semibold leading-tight mb-1">{result.book.title}</h3>
                     <p className="text-gold text-sm font-body italic mb-3">{result.book.author}, {result.book.year}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {result.book.moods.map(m => (
-                        <span key={m} className="border border-gold-dim/50 text-gold-dim text-[10px] px-2 py-0.5 font-body">{MOOD_LABEL[m]}</span>
+                        <span key={m} className="bg-gold/10 text-gold text-[10px] px-2 py-0.5 rounded-full font-body font-medium">{MOOD_LABEL[m]}</span>
                       ))}
-                      <span className="border border-border text-muted-foreground text-[10px] px-2 py-0.5 font-body">{ERA_LABEL[result.book.era]}</span>
-                      <span className="border border-border text-muted-foreground text-[10px] px-2 py-0.5 font-body">{VOLUME_LABEL[result.book.volume]}</span>
+                      <span className="bg-white/5 text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-body">{ERA_LABEL[result.book.era]}</span>
+                      <span className="bg-white/5 text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-body">{VOLUME_LABEL[result.book.volume]}</span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-muted-foreground font-body text-sm leading-relaxed mb-6 border-l-2 border-gold-dim/30 pl-4">
+                <p className="text-muted-foreground font-body text-sm leading-relaxed mb-6 pl-4 border-l-2 border-gold/20 rounded-sm">
                   {result.book.description}
                 </p>
 
                 <div className="flex gap-3">
                   <button onClick={handleSpin} disabled={spinning}
-                    className="flex-1 py-2.5 bg-gold text-ink font-body tracking-wider text-xs uppercase hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-40">
+                    className="flex-1 py-2.5 rounded-xl bg-gold text-ink font-body font-medium text-xs hover:bg-gold/90 transition-all flex items-center justify-center gap-2 disabled:opacity-40 hover:shadow-lg hover:shadow-gold/20">
                     <Icon name="RefreshCw" size={13} />Другую
                   </button>
-                  <button className="flex-1 py-2.5 border border-border text-muted-foreground font-body tracking-wider text-xs uppercase hover:border-gold-dim hover:text-parchment transition-all flex items-center justify-center gap-2">
+                  <button className="flex-1 py-2.5 rounded-xl bg-white/5 text-muted-foreground font-body font-medium text-xs hover:bg-white/10 hover:text-parchment transition-all flex items-center justify-center gap-2">
                     <Icon name="MessageSquare" size={13} />В клуб
                   </button>
                 </div>
