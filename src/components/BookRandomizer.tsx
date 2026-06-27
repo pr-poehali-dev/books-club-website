@@ -1,30 +1,48 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import SectionTitle from "@/components/SectionTitle";
-import { BOOKS, type Mood, type Era, type Volume, type Book } from "@/data/books";
+import { BOOKS, type Mood, type Era, type Volume, type Genre, type Book } from "@/data/books";
 
 /* ─── Constants ──────────────────────────────────────────────── */
 
-const MOOD_OPTIONS: { id: Mood | null; label: string; emoji: string }[] = [
-  { id: "cry",       label: "Поплакать",   emoji: "😭" },
-  { id: "think",     label: "Подумать",    emoji: "🧠" },
-  { id: "adventure", label: "Приключения", emoji: "⚡" },
-  { id: "light",     label: "Лёгкое",      emoji: "☀️" },
-];
-const ERA_OPTIONS: { id: Era | null; label: string; emoji: string }[] = [
-  { id: "xix",    label: "XIX век",        emoji: "🪶" },
-  { id: "xx",     label: "XX век",         emoji: "📻" },
-  { id: "modern", label: "Современность",  emoji: "💻" },
-];
-const VOLUME_OPTIONS: { id: Volume | null; label: string; emoji: string }[] = [
-  { id: "story", label: "Рассказ",       emoji: "📄" },
-  { id: "short", label: "Короткий",      emoji: "📕" },
-  { id: "long",  label: "Большой роман", emoji: "📖" },
+const MOOD_OPTIONS: { id: Mood; label: string; emoji: string }[] = [
+  { id: "romance",  label: "Романтика",   emoji: "🌹" },
+  { id: "comedy",   label: "Комедия",     emoji: "😄" },
+  { id: "tragedy",  label: "Трагедия",    emoji: "😭" },
+  { id: "lyric",    label: "Лирика",      emoji: "🎵" },
+  { id: "heroic",   label: "Героическое", emoji: "⚡" },
+  { id: "drama",    label: "Драма",       emoji: "🎭" },
 ];
 
-const ERA_LABEL:    Record<Era,    string> = { xix: "XIX век", xx: "XX век", modern: "Современность" };
-const VOLUME_LABEL: Record<Volume, string> = { story: "Рассказ", short: "Короткий роман", long: "Большой роман" };
-const MOOD_LABEL:   Record<Mood,   string> = { cry: "Поплакать", think: "Подумать", adventure: "Приключения", light: "Лёгкое" };
+const ERA_OPTIONS: { id: Era; label: string; emoji: string; hint: string }[] = [
+  { id: "antique",  label: "Античность",    emoji: "🏛️", hint: "Гомер, Платон, Овидий" },
+  { id: "medieval", label: "Средневековье", emoji: "🏰", hint: "Данте, Шекспир, Боккаччо" },
+  { id: "xix",      label: "XIX век",       emoji: "🪶", hint: "Толстой, Пушкин, Достоевский" },
+  { id: "xx",       label: "XX век",        emoji: "📻", hint: "Булгаков, Камю, Оруэлл" },
+  { id: "modern",   label: "Современность", emoji: "💻", hint: "Мураками, Харари, Коэльо" },
+];
+
+const VOLUME_OPTIONS: { id: Volume; label: string; emoji: string; hint: string }[] = [
+  { id: "sketch",  label: "Очерк / рассказ / новелла", emoji: "📄", hint: "Чехов, Гоголь, Хемингуэй" },
+  { id: "story",   label: "Рассказ",                   emoji: "📝", hint: "Чехов, Бунин, По" },
+  { id: "novella", label: "Новелла / повесть",          emoji: "📋", hint: "Булгаков, Камю, Голдинг" },
+  { id: "tale",    label: "Повесть",                   emoji: "📕", hint: "Лермонтов, Тургенев" },
+  { id: "novel",   label: "Роман",                     emoji: "📗", hint: "Достоевский, Мураками" },
+  { id: "epic",    label: "Роман-эпопея",              emoji: "📖", hint: "Толстой, Гомер, Данте" },
+];
+
+const GENRE_OPTIONS: { id: Genre; label: string; emoji: string }[] = [
+  { id: "fiction",    label: "Художественная проза", emoji: "✍️" },
+  { id: "philosophy", label: "Философия",            emoji: "🧠" },
+  { id: "nonfiction", label: "Нон-фикшн",            emoji: "📰" },
+  { id: "drama",      label: "Пьеса / драма",        emoji: "🎬" },
+  { id: "poetry",     label: "Поэзия",               emoji: "🌿" },
+];
+
+const ERA_LABEL:    Record<Era,    string> = { antique: "Античность", medieval: "Средневековье", xix: "XIX век", xx: "XX век", modern: "Современность" };
+const VOLUME_LABEL: Record<Volume, string> = { sketch: "Очерк", story: "Рассказ", novella: "Новелла / повесть", tale: "Повесть", novel: "Роман", epic: "Роман-эпопея" };
+const MOOD_LABEL:   Record<Mood,   string> = { romance: "Романтика", comedy: "Комедия", tragedy: "Трагедия", lyric: "Лирика", heroic: "Героическое", drama: "Драма" };
+const GENRE_LABEL:  Record<Genre,  string> = { fiction: "Проза", philosophy: "Философия", nonfiction: "Нон-фикшн", drama: "Пьеса", poetry: "Поэзия" };
 
 const SIZE  = 480;
 const CX    = SIZE / 2;
@@ -43,11 +61,12 @@ const SEG_COLORS = [
 
 /* ─── Helpers ────────────────────────────────────────────────── */
 
-function pickFiltered(mood: Mood|null, era: Era|null, volume: Volume|null): Book[] {
+function pickFiltered(mood: Mood|null, era: Era|null, volume: Volume|null, genre: Genre|null): Book[] {
   const f = BOOKS.filter(b =>
     (mood   ? b.moods.includes(mood) : true) &&
     (era    ? b.era    === era        : true) &&
-    (volume ? b.volume === volume     : true)
+    (volume ? b.volume === volume     : true) &&
+    (genre  ? b.genre  === genre      : true)
   );
   return f.length >= 4 ? f : BOOKS;
 }
@@ -328,6 +347,7 @@ export default function BookRandomizer() {
   const [mood,   setMood]   = useState<Mood   | null>(null);
   const [era,    setEra]    = useState<Era    | null>(null);
   const [volume, setVolume] = useState<Volume | null>(null);
+  const [genre,  setGenre]  = useState<Genre  | null>(null);
 
   const [spinning,   setSpinning]   = useState(false);
   const [result,     setResult]     = useState<{book:Book; isFallback:boolean} | null>(null);
@@ -335,19 +355,11 @@ export default function BookRandomizer() {
   const [winGlow,    setWinGlow]    = useState(false);
   const [targetIdx,  setTargetIdx]  = useState(0);
 
-  const pool = pickFiltered(mood, era, volume);
-  const isFallback = pool === BOOKS && (mood || era || volume);
+  const pool = pickFiltered(mood, era, volume, genre);
+  const hasFilters = !!(mood || era || volume || genre);
+  const isFallback = pool === BOOKS && hasFilters;
   const wheelBooks = pool.slice(0, 16);
   const segments   = wheelBooks.map(b => `${b.emoji}|${b.title}`);
-
-  function pickFiltered(m: Mood|null, e: Era|null, v: Volume|null) {
-    const f = BOOKS.filter(b =>
-      (m ? b.moods.includes(m) : true) &&
-      (e ? b.era    === e       : true) &&
-      (v ? b.volume === v       : true)
-    );
-    return f.length >= 4 ? f : BOOKS;
-  }
 
   const handleSpin = () => {
     if (spinning) return;
@@ -372,32 +384,81 @@ export default function BookRandomizer() {
         <SectionTitle sub="Что почитать?">Книжная рулетка</SectionTitle>
 
         {/* Filters */}
-        <div className="flex flex-wrap justify-center items-center gap-2 mb-12">
-          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Настроение:</span>
-          {MOOD_OPTIONS.map(m => (
-            <Chip key={String(m.id)} label={m.label} emoji={m.emoji}
-              selected={mood === m.id}
-              onClick={() => setMood(mood === m.id ? null : m.id)} />
-          ))}
-          <div className="w-px h-4 bg-white/10 mx-1" />
-          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Эпоха:</span>
-          {ERA_OPTIONS.map(e => (
-            <Chip key={String(e.id)} label={e.label} emoji={e.emoji}
-              selected={era === e.id}
-              onClick={() => setEra(era === e.id ? null : e.id)} />
-          ))}
-          <div className="w-px h-4 bg-white/10 mx-1" />
-          <span className="text-muted-foreground text-xs font-body font-medium mr-1">Объём:</span>
-          {VOLUME_OPTIONS.map(v => (
-            <Chip key={String(v.id)} label={v.label} emoji={v.emoji}
-              selected={volume === v.id}
-              onClick={() => setVolume(volume === v.id ? null : v.id)} />
-          ))}
-          {(mood || era || volume) && (
-            <button onClick={() => { setMood(null); setEra(null); setVolume(null); }}
-              className="text-muted-foreground text-xs font-body hover:text-parchment flex items-center gap-1 ml-1 px-2 py-1.5 rounded-full hover:bg-white/5 transition-all">
-              <Icon name="X" size={12} /> Сбросить
-            </button>
+        <div className="space-y-4 mb-12 max-w-3xl mx-auto">
+          {/* Настроение */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-xs font-body font-medium w-24 shrink-0">Настроение</span>
+            <div className="flex flex-wrap gap-1.5">
+              {MOOD_OPTIONS.map(m => (
+                <Chip key={m.id} label={m.label} emoji={m.emoji}
+                  selected={mood === m.id}
+                  onClick={() => setMood(mood === m.id ? null : m.id)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Эпоха */}
+          <div className="flex flex-wrap items-start gap-2">
+            <span className="text-muted-foreground text-xs font-body font-medium w-24 shrink-0 pt-1.5">Эпоха</span>
+            <div className="flex flex-wrap gap-1.5">
+              {ERA_OPTIONS.map(e => (
+                <button key={e.id}
+                  onClick={() => setEra(era === e.id ? null : e.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body font-medium transition-all duration-150 group relative
+                    ${era === e.id
+                      ? "bg-gold/20 text-gold"
+                      : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-parchment"}`}>
+                  <span>{e.emoji}</span>
+                  {e.label}
+                  <span className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-card rounded-lg text-[10px] text-muted-foreground whitespace-nowrap border border-white/10 shadow-lg z-10">
+                    {e.hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Объём */}
+          <div className="flex flex-wrap items-start gap-2">
+            <span className="text-muted-foreground text-xs font-body font-medium w-24 shrink-0 pt-1.5">Объём</span>
+            <div className="flex flex-wrap gap-1.5">
+              {VOLUME_OPTIONS.map(v => (
+                <button key={v.id}
+                  onClick={() => setVolume(volume === v.id ? null : v.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body font-medium transition-all duration-150 group relative
+                    ${volume === v.id
+                      ? "bg-gold/20 text-gold"
+                      : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-parchment"}`}>
+                  <span>{v.emoji}</span>
+                  {v.label}
+                  <span className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-card rounded-lg text-[10px] text-muted-foreground whitespace-nowrap border border-white/10 shadow-lg z-10">
+                    {v.hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Жанр */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-xs font-body font-medium w-24 shrink-0">Жанр</span>
+            <div className="flex flex-wrap gap-1.5">
+              {GENRE_OPTIONS.map(g => (
+                <Chip key={g.id} label={g.label} emoji={g.emoji}
+                  selected={genre === g.id}
+                  onClick={() => setGenre(genre === g.id ? null : g.id)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Сброс */}
+          {hasFilters && (
+            <div className="flex justify-end">
+              <button onClick={() => { setMood(null); setEra(null); setVolume(null); setGenre(null); }}
+                className="text-muted-foreground text-xs font-body hover:text-parchment flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-white/5 transition-all">
+                <Icon name="X" size={12} /> Сбросить фильтры
+              </button>
+            </div>
           )}
         </div>
 
@@ -465,6 +526,7 @@ export default function BookRandomizer() {
                       ))}
                       <span className="bg-white/5 text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-body">{ERA_LABEL[result.book.era]}</span>
                       <span className="bg-white/5 text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-body">{VOLUME_LABEL[result.book.volume]}</span>
+                      <span className="bg-white/5 text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-body">{GENRE_LABEL[result.book.genre]}</span>
                     </div>
                   </div>
                 </div>
