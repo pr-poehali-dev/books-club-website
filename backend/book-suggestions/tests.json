@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Получить список предложений",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Отправить предложение без названия — ошибка",
+      "method": "POST",
+      "path": "/",
+      "body": {"author": "Тест", "comment": "Тест"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Отправить предложение с названием",
+      "method": "POST",
+      "path": "/",
+      "body": {"title": "Тестовая книга", "author": "Тестовый автор", "comment": "Тестовый комментарий"},
+      "expectedStatus": 201,
+      "expectedBody": {"title": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

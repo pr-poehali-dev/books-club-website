@@ -1,10 +1,32 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
+const API_URL = "https://functions.poehali.dev/976c0130-c3e8-40de-af33-aa27a75d84c0";
+
+interface Suggestion {
+  id: number;
+  title: string;
+  author: string;
+  comment: string;
+  created_at: string;
+}
+
 export default function BookSuggestions() {
-  const suggestions: { id: number; title: string; author: string; comment: string; created_at: string }[] = [];
-  const loading = false;
-  const error = false;
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error("Request failed");
+        return res.json();
+      })
+      .then((data) => setSuggestions(data.suggestions || []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
@@ -39,7 +61,7 @@ export default function BookSuggestions() {
           <p className="text-center text-muted-foreground font-body">Загружаем предложения…</p>
         )}
 
-        {error && (
+        {!loading && error && (
           <p className="text-center text-muted-foreground font-body">
             Не удалось загрузить список. Попробуйте обновить страницу позже.
           </p>
@@ -63,7 +85,7 @@ export default function BookSuggestions() {
                 className="bg-card rounded-2xl p-6 border border-white/5 flex flex-col gap-2"
               >
                 <h3 className="font-display text-lg text-parchment font-semibold">{s.title}</h3>
-                <p className="text-gold text-xs font-body italic">{s.author}</p>
+                {s.author && <p className="text-gold text-xs font-body italic">{s.author}</p>}
                 {s.comment && (
                   <p className="text-muted-foreground font-body text-sm leading-relaxed mt-1">
                     {s.comment}

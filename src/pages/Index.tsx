@@ -3,6 +3,7 @@ import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import MainSections from "@/components/MainSections";
 import BookRandomizer from "@/components/BookRandomizer";
+import BookSuggestForm from "@/components/BookSuggestForm";
 import TailSections from "@/components/TailSections";
 
 export default function Index() {
@@ -27,6 +28,7 @@ export default function Index() {
       <HeroSection onScrollTo={scrollTo} />
       <MainSections />
       <BookRandomizer />
+      <BookSuggestForm />
       <TailSections />
     </div>
   );

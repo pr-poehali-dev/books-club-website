@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { id: "events", label: "События" },
   { id: "book-of-month", label: "Книга месяца" },
   { id: "randomizer", label: "Подобрать книгу" },
+  { id: "suggest-book", label: "Предложить книгу" },
   { id: "community", label: "Сообщество" },
 ];
 
