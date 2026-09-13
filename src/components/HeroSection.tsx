@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import Divider from "@/components/Divider";
+import logo from "@/assets/logo_title.png";
 
 const HERO_IMAGE = "https://cdn.poehali.dev/projects/d1e3655d-4032-44e7-ac28-0afea4a15ee2/files/12997f2b-77f8-40dd-a340-b33f4100e576.jpg";
 
@@ -16,6 +17,11 @@ export default function HeroSection({ onScrollTo }: HeroSectionProps) {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        <img
+          src={logo}
+          alt="Логотип литературного клуба"
+          className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-6 animate-fade-in-up"
+        />
         <span className="inline-block text-gold text-xs font-body font-medium tracking-[0.2em] uppercase mb-6 px-4 py-1.5 rounded-full bg-gold/10 animate-fade-in-up">
           Клуб любителей классической литературы
         </span>

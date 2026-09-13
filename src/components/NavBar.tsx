@@ -1,4 +1,5 @@
 import Icon from "@/components/ui/icon";
+import logo from "@/assets/logo_title.png";
 
 const NAV_ITEMS = [
   { id: "home", label: "Главная" },
@@ -22,9 +23,10 @@ export default function NavBar({ activeSection, mobileOpen, onNav, onToggleMobil
       <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
         <button
           onClick={() => onNav("home")}
-          className="font-display text-xl text-gold font-semibold hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
         >
-          Литературный клуб
+          <img src={logo} alt="Логотип клуба" className="w-8 h-8" />
+          <span className="font-display text-xl text-gold font-semibold">Литературный клуб</span>
         </button>
 
         <div className="hidden lg:flex items-center gap-1">
