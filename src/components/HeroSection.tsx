@@ -27,7 +27,18 @@ export default function HeroSection({ onScrollTo }: HeroSectionProps) {
         </span>
         <h1 className="font-display text-6xl md:text-8xl lg:text-9xl text-parchment font-semibold leading-[0.95] mb-6 animate-fade-in-up delay-200">
           Литературный<br />
-          <em className="text-gold italic">клуб</em>
+          <em className="text-gold italic" aria-label="клуб">
+            {"клуб".split("").map((ch, i) => (
+              <span
+                key={i}
+                aria-hidden="true"
+                className="shine-letter"
+                style={{ "--i": i } as React.CSSProperties}
+              >
+                {ch}
+              </span>
+            ))}
+          </em>
         </h1>
         <Divider />
         <p className="text-muted-foreground text-lg md:text-xl font-body italic mt-6 mb-10 animate-fade-in-up delay-400">

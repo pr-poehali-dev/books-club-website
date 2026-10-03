@@ -256,6 +256,50 @@ body::after {
   animation: fade-in 0.5s ease forwards;
 }
 
+@keyframes letter-bounce {
+  0%,
+  30%,
+  100% {
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateY(-0.14em);
+  }
+  20% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes letter-shine {
+  0% {
+    background-position: 130% 0;
+  }
+  35%,
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+.shine-letter {
+  display: inline-block;
+  padding: 0 0.04em;
+  background-image: linear-gradient(
+    110deg,
+    hsl(var(--gold)) 40%,
+    hsl(var(--parchment)) 50%,
+    hsl(var(--gold)) 60%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation:
+    letter-bounce 3.5s ease-in-out infinite,
+    letter-shine 3.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.15s);
+}
+
 .delay-100 {
   animation-delay: 0.1s;
 }
